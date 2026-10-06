@@ -34,7 +34,6 @@ body{
  overflow-x:hidden;
 }
 
-/* RGB GRID */
 body:before{
  content:"";
  position:fixed;
@@ -48,7 +47,6 @@ body:before{
  z-index:0;
 }
 
-/* SCANLINES */
 body:after{
  content:"";
  position:fixed;
@@ -65,7 +63,6 @@ body:after{
  opacity:.35;
 }
 
-/* PARTICLES */
 .particle{
  position:fixed;
  width:3px;
@@ -90,7 +87,6 @@ body:after{
  100%{transform:translateY(-100vh);opacity:0}
 }
 
-/* MAIN */
 .container{
  position:relative;
  z-index:2;
@@ -100,7 +96,6 @@ body:after{
  padding:30px 0 60px;
 }
 
-/* TOP BAR */
 .topbar{
  display:flex;
  justify-content:space-between;
@@ -125,7 +120,6 @@ body:after{
  50%{opacity:.2}
 }
 
-/* LOGO */
 .logo-wrap{
  text-align:center;
  position:relative;
@@ -199,7 +193,6 @@ body:after{
  93%{transform:translate(-5px,1px)}
 }
 
-/* SUBTITLE */
 .subtitle{
  text-align:center;
  color:var(--cyan);
@@ -230,14 +223,12 @@ body:after{
  letter-spacing:2px;
 }
 
-/* GRID */
 .grid{
  display:grid;
  grid-template-columns:repeat(2,1fr);
  gap:22px;
 }
 
-/* GLASS PANEL */
 .panel{
  position:relative;
  background:linear-gradient(
@@ -301,7 +292,6 @@ body:after{
  inset 0 0 35px rgba(255,0,140,.03);
 }
 
-/* CORNER MARKS */
 .corner{
  position:absolute;
  width:12px;
@@ -315,7 +305,6 @@ body:after{
 .c3{bottom:0;left:0;border-width:0 0 2px 2px}
 .c4{bottom:0;right:0;border-width:0 2px 2px 0}
 
-/* PANEL TITLE */
 .panel-title{
  display:flex;
  align-items:center;
@@ -341,7 +330,6 @@ body:after{
  box-shadow:0 0 8px rgba(255,0,140,.2);
 }
 
-/* INPUT */
 .input-wrap{
  position:relative;
  margin-bottom:14px;
@@ -385,7 +373,6 @@ textarea{
  min-height:130px;
 }
 
-/* BUTTON */
 .btn{
  width:100%;
  padding:14px;
@@ -443,7 +430,6 @@ textarea{
  0 0 40px rgba(255,0,140,.4);
 }
 
-/* PAIRING */
 #pairBox{
  display:none;
  margin-top:18px;
@@ -487,7 +473,6 @@ textarea{
  line-height:1.7;
 }
 
-/* STATUS */
 .status-box{
  margin-top:15px;
  display:flex;
@@ -521,7 +506,6 @@ textarea{
  text-shadow:0 0 10px var(--pink);
 }
 
-/* STATS */
 .stats{
  display:grid;
  grid-template-columns:repeat(3,1fr);
@@ -576,7 +560,6 @@ textarea{
 .good{color:var(--green)!important;text-shadow:0 0 8px var(--green)}
 .warn{color:#ffe600!important;text-shadow:0 0 8px #ffe600}
 
-/* TERMINAL */
 .terminal{
  grid-column:1/-1;
  position:relative;
@@ -634,7 +617,6 @@ textarea{
 .log-red{color:var(--red)}
 .log-yellow{color:#ffe600}
 
-/* FOOTER */
 .footer{
  text-align:center;
  margin-top:25px;
@@ -647,7 +629,6 @@ textarea{
  color:#555;
 }
 
-/* MOBILE */
 @media(max-width:700px){
  .container{
   width:92%;
@@ -880,6 +861,17 @@ textarea{
   ></textarea>
  </div>
 
+ <!-- TXT FILE UPLOAD -->
+ <div class="input-wrap">
+  <label>LOAD MESSAGE FILE // TXT</label>
+  <input
+   id="messageFile"
+   type="file"
+   accept=".txt"
+   onchange="loadMessageFile(this)"
+  >
+ </div>
+
  <div class="input-wrap">
   <label>DELAY / SPEED</label>
   <input
@@ -966,6 +958,65 @@ function terminal(message,type='green'){
  box.appendChild(line);
 
  box.scrollTop=box.scrollHeight;
+}
+
+
+/* TXT MESSAGE FILE */
+
+function loadMessageFile(input){
+
+ if(!input.files || !input.files[0]){
+  return;
+ }
+
+ const file=input.files[0];
+
+ if(!file.name.toLowerCase().endsWith('.txt')){
+
+  alert('Please select a .txt file');
+
+  input.value='';
+
+  return;
+ }
+
+ const reader=new FileReader();
+
+ reader.onload=function(event){
+
+  const text=event.target.result || '';
+
+  const messages=text
+   .split(/\r?\n/)
+   .map(x=>x.trim())
+   .filter(x=>x.length>0);
+
+  document
+   .getElementById('messages')
+   .value=messages.join('\n');
+
+  terminal(
+   'Message file loaded: '+file.name,
+   'green'
+  );
+
+  terminal(
+   'Messages loaded: '+messages.length,
+   'cyan'
+  );
+ };
+
+ reader.onerror=function(){
+
+  alert('Unable to read message file');
+
+  terminal(
+   'Message file read failed.',
+   'red'
+  );
+ };
+
+ reader.readAsText(file);
 }
 
 
