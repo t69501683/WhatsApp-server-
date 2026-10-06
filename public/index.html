@@ -1,981 +1,1123 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
+
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<meta
+  name="viewport"
+  content="width=device-width, initial-scale=1.0"
+>
 
 <title>SUIYAN PAPA TOOL</title>
 
 <style>
-*{
-  box-sizing:border-box;
-  margin:0;
-  padding:0;
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
 }
 
-:root{
-  --green:#00ff66;
-  --cyan:#00eaff;
-  --blue:#2979ff;
-  --purple:#9b00ff;
-  --pink:#ff00d4;
-  --red:#ff1744;
-  --bg:#020304;
-  --panel:rgba(4,10,8,.88);
-}
+body {
 
-html,body{
-  min-height:100%;
-}
-
-body{
   background:
-    radial-gradient(circle at 15% 20%,rgba(0,255,102,.09),transparent 25%),
-    radial-gradient(circle at 85% 20%,rgba(0,234,255,.08),transparent 25%),
-    radial-gradient(circle at 50% 100%,rgba(255,0,212,.07),transparent 30%),
-    #020304;
+    radial-gradient(
+      circle at top,
+      #101010 0%,
+      #030303 45%,
+      #000000 100%
+    );
 
-  color:#dffff0;
+  color: #00ff88;
 
   font-family:
     "Courier New",
     monospace;
 
-  overflow-x:hidden;
+  min-height: 100vh;
+
+  overflow-x: hidden;
+
 }
 
-/* MATRIX / SCANLINES */
 
-body::before{
-  content:"";
-  position:fixed;
-  inset:0;
-  pointer-events:none;
-  z-index:999;
+/* SCANLINES */
+
+body::before {
+
+  content: "";
+
+  position: fixed;
+
+  inset: 0;
+
+  pointer-events: none;
 
   background:
     repeating-linear-gradient(
       0deg,
-      transparent 0px,
-      transparent 3px,
-      rgba(0,255,100,.035) 4px
+      rgba(255,255,255,0.025),
+      rgba(255,255,255,0.025) 1px,
+      transparent 1px,
+      transparent 3px
     );
 
-  animation:scan 8s linear infinite;
-}
+  z-index: 999;
 
-body::after{
-  content:"";
-  position:fixed;
-  inset:0;
-  pointer-events:none;
-
-  background:
-    linear-gradient(
-      90deg,
-      transparent,
-      rgba(0,255,102,.025),
-      transparent
-    );
-
-  animation:moveLight 5s linear infinite;
-}
-
-@keyframes scan{
-  from{transform:translateY(0)}
-  to{transform:translateY(20px)}
-}
-
-@keyframes moveLight{
-  0%{transform:translateX(-100%)}
-  100%{transform:translateX(100%)}
 }
 
 
 /* MAIN */
 
-.wrapper{
-  width:min(1200px,94%);
-  margin:auto;
-  padding:22px 0 40px;
-}
+.container {
 
+  width: 95%;
 
-/* HEADER */
+  max-width: 1200px;
 
-.header{
-  position:relative;
+  margin: auto;
 
-  padding:28px 20px;
+  padding: 25px 0 50px;
 
-  border:1px solid #00ff6640;
-
-  background:
-    linear-gradient(
-      135deg,
-      rgba(0,255,102,.06),
-      rgba(0,0,0,.8),
-      rgba(255,0,212,.04)
-    );
-
-  box-shadow:
-    0 0 15px #00ff6615,
-    inset 0 0 30px #00ff6608;
-
-  overflow:hidden;
-}
-
-
-/* RGB LINE */
-
-.header::before{
-  content:"";
-
-  position:absolute;
-  top:0;
-  left:-100%;
-  width:100%;
-  height:2px;
-
-  background:
-    linear-gradient(
-      90deg,
-      #ff0000,
-      #ffff00,
-      #00ff00,
-      #00ffff,
-      #0066ff,
-      #ff00ff,
-      #ff0000
-    );
-
-  animation:rgbLine 3s linear infinite;
-
-  box-shadow:
-    0 0 15px #00ff66,
-    0 0 25px #ff00ff;
-}
-
-@keyframes rgbLine{
-  0%{left:-100%}
-  100%{left:100%}
 }
 
 
 /* LOGO */
 
-.logo{
-  text-align:center;
+.logo {
+
+  text-align: center;
 
   font-size:
-    clamp(28px,7vw,68px);
-
-  font-weight:900;
-
-  letter-spacing:
-    clamp(2px,1vw,9px);
-
-  text-transform:uppercase;
-
-  background:
-    linear-gradient(
-      90deg,
-      #ff1744,
-      #ffea00,
-      #00ff66,
-      #00eaff,
-      #2979ff,
-      #9b00ff,
-      #ff00d4,
-      #ff1744
+    clamp(
+      28px,
+      6vw,
+      70px
     );
 
-  background-size:400% 100%;
+  font-weight: 900;
 
-  -webkit-background-clip:text;
-  background-clip:text;
-
-  color:transparent;
+  letter-spacing: 5px;
 
   animation:
-    rgbText 4s linear infinite,
-    glitch 3s infinite;
-
-  filter:
-    drop-shadow(0 0 4px #00ff66)
-    drop-shadow(0 0 12px #ff00d4);
-
-  position:relative;
-}
-
-@keyframes rgbText{
-  0%{background-position:0%}
-  100%{background-position:400%}
-}
-
-@keyframes glitch{
-  0%,90%,100%{
-    transform:translate(0);
-  }
-
-  92%{
-    transform:translate(-2px,1px);
-  }
-
-  94%{
-    transform:translate(2px,-1px);
-  }
-
-  96%{
-    transform:translate(-1px,0);
-  }
-}
-
-
-.subtitle{
-  text-align:center;
-
-  margin-top:10px;
-
-  color:#65ffb0;
-
-  font-size:
-    clamp(9px,2vw,13px);
-
-  letter-spacing:4px;
+    rgbGlitch 2s infinite;
 
   text-shadow:
-    0 0 8px #00ff66;
+    0 0 5px #ff003c,
+    0 0 10px #00ffff,
+    0 0 20px #00ff88;
+
 }
 
 
-/* STATUS */
+@keyframes rgbGlitch {
 
-.status{
-  display:flex;
-  justify-content:center;
-  align-items:center;
-  gap:9px;
+  0% {
 
-  margin-top:16px;
+    text-shadow:
+      3px 0 #ff003c,
+      -3px 0 #00ffff,
+      0 0 20px #00ff88;
 
-  font-size:11px;
-
-  color:#00ff66;
-
-  letter-spacing:2px;
-}
-
-.status-dot{
-  width:8px;
-  height:8px;
-
-  border-radius:50%;
-
-  background:#00ff66;
-
-  box-shadow:
-    0 0 6px #00ff66,
-    0 0 15px #00ff66,
-    0 0 25px #00ff66;
-
-  animation:pulse 1s infinite;
-}
-
-@keyframes pulse{
-  50%{
-    opacity:.35;
-    transform:scale(.65);
   }
+
+  25% {
+
+    text-shadow:
+      -3px 0 #ff003c,
+      3px 0 #00ffff,
+      0 0 25px #00ff88;
+
+  }
+
+  50% {
+
+    text-shadow:
+      3px 0 #00ffff,
+      -3px 0 #ff003c,
+      0 0 30px #00ff88;
+
+  }
+
+  75% {
+
+    text-shadow:
+      -2px 0 #00ffff,
+      2px 0 #ff003c,
+      0 0 20px #00ff88;
+
+  }
+
+  100% {
+
+    text-shadow:
+      3px 0 #ff003c,
+      -3px 0 #00ffff,
+      0 0 20px #00ff88;
+
+  }
+
+}
+
+
+.subtitle {
+
+  text-align: center;
+
+  color: #00ffff;
+
+  margin-top: 8px;
+
+  font-size: 13px;
+
+  letter-spacing: 3px;
+
+}
+
+
+.status {
+
+  text-align: center;
+
+  margin:
+    15px
+    0
+    25px;
+
+  color: #00ff88;
+
+  font-size: 12px;
+
 }
 
 
 /* GRID */
 
-.grid{
-  display:grid;
+.grid {
+
+  display: grid;
 
   grid-template-columns:
-    280px 1fr;
-
-  gap:16px;
-
-  margin-top:18px;
-}
-
-
-/* PANELS */
-
-.panel{
-  position:relative;
-
-  padding:18px;
-
-  background:var(--panel);
-
-  border:1px solid #00ff6630;
-
-  box-shadow:
-    0 0 25px #000,
-    inset 0 0 25px #00ff6605;
-
-  overflow:hidden;
-}
-
-.panel::before{
-  content:"";
-
-  position:absolute;
-
-  left:0;
-  top:0;
-
-  width:3px;
-  height:100%;
-
-  background:
-    linear-gradient(
-      #ff1744,
-      #ffea00,
-      #00ff66,
-      #00eaff,
-      #2979ff,
-      #ff00d4
+    repeat(
+      auto-fit,
+      minmax(
+        280px,
+        1fr
+      )
     );
 
+  gap: 18px;
+
+}
+
+
+/* PANEL */
+
+.panel {
+
+  background:
+    rgba(
+      0,
+      20,
+      12,
+      0.82
+    );
+
+  border:
+    1px solid
+    #00ff88;
+
+  padding: 20px;
+
   box-shadow:
-    0 0 10px #00ff66;
+    0 0 15px
+    rgba(
+      0,
+      255,
+      136,
+      0.15
+    );
+
+  position: relative;
+
 }
 
-.title{
-  color:#00ff66;
 
-  font-size:12px;
+.panel::before {
 
-  letter-spacing:2px;
+  content:
+    "[ SYSTEM NODE ]";
 
-  margin-bottom:15px;
+  position: absolute;
 
-  text-shadow:
-    0 0 8px #00ff66;
+  top: -9px;
+
+  left: 15px;
+
+  background: #030303;
+
+  padding:
+    0 8px;
+
+  color: #00ffff;
+
+  font-size: 10px;
+
 }
 
-.title::before{
-  content:"// ";
-  color:#ff00d4;
+
+.panel h2 {
+
+  font-size: 15px;
+
+  margin-bottom: 18px;
+
+  color: #00ffff;
+
+  letter-spacing: 2px;
+
 }
 
 
 /* INPUT */
 
-label{
-  display:block;
-
-  margin:
-    14px 0 6px;
-
-  color:#63b987;
-
-  font-size:10px;
-
-  letter-spacing:1px;
-}
-
 input,
-textarea{
-  width:100%;
+textarea {
 
-  border:1px solid #164d2d;
+  width: 100%;
 
-  outline:none;
+  background:
+    #020202;
 
-  background:#010503;
+  color:
+    #00ff88;
 
-  color:#dffff0;
+  border:
+    1px solid
+    #006b3c;
 
-  padding:11px;
+  padding:
+    13px;
 
-  font-family:inherit;
+  margin-bottom:
+    12px;
 
-  font-size:12px;
+  outline: none;
 
-  transition:.2s;
+  font-family:
+    "Courier New",
+    monospace;
 
-  border-radius:2px;
 }
+
 
 input:focus,
-textarea:focus{
-  border-color:#00ff66;
+textarea:focus {
+
+  border-color:
+    #00ff88;
 
   box-shadow:
-    0 0 8px #00ff6630,
-    inset 0 0 10px #00ff6608;
-}
+    0 0 10px
+    rgba(
+      0,
+      255,
+      136,
+      0.25
+    );
 
-textarea{
-  min-height:150px;
-
-  resize:vertical;
 }
 
 
 /* BUTTON */
 
-button{
-  width:100%;
+button {
 
-  padding:12px;
+  width: 100%;
 
-  margin-top:12px;
-
-  border:1px solid #00ff66;
+  padding:
+    13px;
 
   background:
-    linear-gradient(
-      90deg,
-      #021a0b,
-      #063719,
-      #021a0b
-    );
+    #001a0d;
 
-  color:#00ff66;
+  color:
+    #00ff88;
 
-  font-family:inherit;
+  border:
+    1px solid
+    #00ff88;
 
-  font-weight:bold;
+  font-family:
+    "Courier New",
+    monospace;
 
-  letter-spacing:2px;
+  font-weight:
+    bold;
 
-  cursor:pointer;
+  cursor:
+    pointer;
 
-  transition:.2s;
+  margin-top:
+    5px;
 
-  text-shadow:
-    0 0 8px #00ff66;
+  transition:
+    0.2s;
 
-  box-shadow:
-    0 0 8px #00ff6615;
 }
 
-button:hover{
-  color:#fff;
 
-  border-color:#00ffff;
-
-  box-shadow:
-    0 0 10px #00ff66,
-    0 0 25px #00ffff40;
-
-  transform:translateY(-1px);
-}
-
-.danger{
-  border-color:#ff1744;
-
-  color:#ff4d70;
+button:hover {
 
   background:
-    linear-gradient(
-      90deg,
-      #190208,
-      #350510,
-      #190208
-    );
+    #00ff88;
 
-  text-shadow:
-    0 0 8px #ff1744;
-}
-
-.danger:hover{
-  border-color:#ff00d4;
+  color:
+    #000;
 
   box-shadow:
-    0 0 10px #ff1744,
-    0 0 25px #ff00d440;
+    0 0 20px
+    #00ff88;
+
 }
 
 
-/* CARDS */
+button.stop {
 
-.cards{
-  display:grid;
+  border-color:
+    #ff1744;
+
+  color:
+    #ff1744;
+
+}
+
+
+button.stop:hover {
+
+  background:
+    #ff1744;
+
+  color:
+    #000;
+
+  box-shadow:
+    0 0 20px
+    #ff1744;
+
+}
+
+
+/* PAIRING BOX */
+
+#pairBox {
+
+  display:
+    none;
+
+  margin-top:
+    18px;
+
+  padding:
+    18px;
+
+  border:
+    1px solid
+    #00ffff;
+
+  text-align:
+    center;
+
+  box-shadow:
+    0 0 20px
+    rgba(
+      0,
+      255,
+      255,
+      0.2
+    );
+
+}
+
+
+.pair-title {
+
+  color:
+    #00ffff;
+
+  font-size:
+    11px;
+
+  letter-spacing:
+    2px;
+
+}
+
+
+#pairingCode {
+
+  margin-top:
+    12px;
+
+  font-size:
+    30px;
+
+  font-weight:
+    bold;
+
+  letter-spacing:
+    8px;
+
+  color:
+    #ffffff;
+
+  text-shadow:
+    0 0 10px
+    #00ffff;
+
+  word-break:
+    break-all;
+
+}
+
+
+.pair-help {
+
+  color:
+    #777;
+
+  font-size:
+    10px;
+
+  margin-top:
+    12px;
+
+  line-height:
+    1.6;
+
+}
+
+
+/* STATS */
+
+.stats {
+
+  display:
+    grid;
 
   grid-template-columns:
-    repeat(3,1fr);
-
-  gap:10px;
-}
-
-.card{
-  padding:16px;
-
-  background:
-    linear-gradient(
-      135deg,
-      rgba(0,255,102,.05),
-      rgba(0,0,0,.7)
+    repeat(
+      3,
+      1fr
     );
 
-  border:1px solid #164d2d;
+  gap:
+    10px;
 
-  text-align:center;
+  margin-top:
+    20px;
 
-  transition:.2s;
 }
 
-.card:hover{
-  border-color:#00ff66;
 
-  box-shadow:
-    0 0 18px #00ff6618;
+.stat {
+
+  border:
+    1px solid
+    #003d25;
+
+  padding:
+    15px;
+
+  text-align:
+    center;
+
+  background:
+    rgba(
+      0,
+      255,
+      136,
+      0.03
+    );
+
 }
 
-.number{
-  font-size:24px;
 
-  color:#00ff66;
+.stat-number {
 
-  font-weight:900;
+  font-size:
+    25px;
 
-  text-shadow:
-    0 0 10px #00ff66;
+  color:
+    #00ffff;
+
+  font-weight:
+    bold;
+
 }
 
-.muted{
-  margin-top:4px;
 
-  color:#4f936d;
+.stat-label {
 
-  font-size:9px;
+  font-size:
+    9px;
 
-  letter-spacing:1px;
+  color:
+    #777;
+
+  margin-top:
+    5px;
+
 }
 
 
 /* TERMINAL */
 
-.terminal{
-  margin-top:16px;
+.terminal {
 
-  min-height:230px;
+  margin-top:
+    20px;
 
-  background:#010302;
+  border:
+    1px solid
+    #00ff88;
 
-  border:1px solid #174d2c;
+  background:
+    #010101;
 
-  padding:15px;
+  min-height:
+    190px;
 
-  box-shadow:
-    inset 0 0 30px #00ff6605;
+  padding:
+    15px;
+
+  overflow:
+    hidden;
+
 }
 
-.logs{
-  color:#71e89c;
 
-  font-size:11px;
+.terminal-title {
 
-  line-height:1.9;
+  color:
+    #00ffff;
 
-  max-height:170px;
+  font-size:
+    12px;
 
-  overflow:auto;
+  margin-bottom:
+    10px;
+
 }
 
-.logs b{
-  color:#00ff66;
 
-  text-shadow:
-    0 0 6px #00ff66;
+#terminal {
+
+  font-size:
+    11px;
+
+  line-height:
+    1.8;
+
+  max-height:
+    160px;
+
+  overflow-y:
+    auto;
+
 }
 
-.cursor{
-  display:inline-block;
 
-  width:7px;
-  height:12px;
-
-  background:#00ff66;
-
-  margin-left:3px;
-
-  animation:blink .8s infinite;
+.log-green {
+  color: #00ff88;
 }
 
-@keyframes blink{
-  50%{opacity:0}
+.log-cyan {
+  color: #00ffff;
+}
+
+.log-red {
+  color: #ff1744;
+}
+
+.log-yellow {
+  color: #ffff00;
+}
+
+
+/* FOOTER */
+
+.footer {
+
+  text-align:
+    center;
+
+  margin-top:
+    25px;
+
+  color:
+    #333;
+
+  font-size:
+    10px;
+
 }
 
 
 /* MOBILE */
 
-@media(max-width:800px){
+@media (
+  max-width: 600px
+) {
 
-  .grid{
-    grid-template-columns:1fr;
+  .container {
+
+    width:
+      92%;
+
   }
 
-  .cards{
-    grid-template-columns:1fr;
+  .logo {
+
+    letter-spacing:
+      2px;
+
   }
 
-  .logo{
-    letter-spacing:3px;
+  .stats {
+
+    grid-template-columns:
+      1fr;
+
   }
+
 }
+
 </style>
+
 </head>
 
 
 <body>
 
-<div class="wrapper">
+<div class="container">
 
 
-<!-- HEADER -->
+  <!-- HEADER -->
 
-<header class="header">
+  <div class="logo">
+    SUIYAN PAPA TOOL
+  </div>
 
-<div class="logo">
-SUIYAN PAPA TOOL
-</div>
 
-<div class="subtitle">
-◈ ELITE AUTOMATION CONTROL SYSTEM ◈
-</div>
+  <div class="subtitle">
+    ◈ ELITE AUTOMATION CONTROL SYSTEM ◈
+  </div>
 
-<div class="status">
-<span class="status-dot"></span>
-SYSTEM ONLINE // NODE SECURE
-</div>
 
-</header>
+  <div class="status">
+    ● SYSTEM ONLINE // NODE SECURE
+  </div>
 
 
-<!-- CONTENT -->
+  <!-- MAIN GRID -->
 
-<div class="grid">
+  <div class="grid">
 
 
-<!-- AUTH PANEL -->
+    <!-- AUTHENTICATION -->
 
-<aside class="panel">
+    <div class="panel">
 
-<div class="title">
-AUTHENTICATION
-</div>
+      <h2>
+        [ WHATSAPP AUTHENTICATION ]
+      </h2>
 
 
-<label>
-PHONE NUMBER
-</label>
+      <input
+        id="phone"
+        type="text"
+        placeholder="PHONE NUMBER: 919XXXXXXXXX"
+        autocomplete="off"
+      >
 
-<input
-id="phone"
-placeholder="9198xxxxxxxx"
->
 
+      <button
+        onclick="login()"
+      >
+        [ INITIALIZE SESSION ]
+      </button>
 
-<button onclick="login()">
-[ INITIALIZE SESSION ]
-</button>
 
+      <input
+        id="session"
+        type="text"
+        placeholder="SESSION ID"
+        readonly
+      >
 
-<label>
-SESSION ID
-</label>
 
-<input
-id="session"
-placeholder="session_xxxxx"
-readonly
->
+      <!-- PAIRING -->
 
+      <div id="pairBox">
 
-<br><br>
+        <div class="pair-title">
+          WHATSAPP PAIRING CODE
+        </div>
 
-<div class="muted">
 
-NODE STATUS
+        <div id="pairingCode">
+          WAITING...
+        </div>
 
-<br>
 
-<span style="
-color:#00ff66;
-text-shadow:0 0 8px #00ff66;
-">
-● ONLINE
-</span>
+        <div class="pair-help">
 
-<br><br>
+          WhatsApp →
+          Settings →
+          Linked Devices →
+          Link a device →
+          Link with phone number instead
 
-ENGINE
+        </div>
 
-<br>
+      </div>
 
-<span style="
-color:#00eaff;
-text-shadow:0 0 8px #00eaff;
-">
-BAILEYS / NODE.JS
-</span>
 
-<br><br>
+      <div
+        id="connectionStatus"
+        style="
+        margin-top:15px;
+        font-size:11px;
+        color:#ffff00;
+        text-align:center;
+        "
+      >
+        NODE STATUS: WAITING
+      </div>
 
-OWNER
 
-<br>
+      <div
+        style="
+        margin-top:12px;
+        font-size:10px;
+        color:#555;
+        text-align:center;
+        "
+      >
+        OWNER:
+        <span style="color:#00ff88">
+          SUIYAN PAPA
+        </span>
+      </div>
 
-<span style="
-color:#ff00d4;
-text-shadow:0 0 8px #ff00d4;
-">
-SUIYAN PAPA
-</span>
+    </div>
 
-</div>
 
-</aside>
+    <!-- SYSTEM STATS -->
 
+    <div class="panel">
 
-<!-- MAIN -->
+      <h2>
+        [ SYSTEM MONITOR ]
+      </h2>
 
-<main>
 
+      <div class="stats">
 
-<!-- CARDS -->
+        <div class="stat">
 
-<section class="cards">
+          <div
+            class="stat-number"
+            id="activeSessions"
+          >
+            0
+          </div>
 
+          <div class="stat-label">
+            ACTIVE SESSIONS
+          </div>
 
-<div class="card">
+        </div>
 
-<div
-class="number"
-id="sessionCount">
-0
-</div>
 
-<div class="muted">
-ACTIVE SESSIONS
-</div>
+        <div class="stat">
 
-</div>
+          <div
+            class="stat-number"
+            id="messagesSent"
+          >
+            0
+          </div>
 
+          <div class="stat-label">
+            MESSAGES LOGGED
+          </div>
 
-<div class="card">
+        </div>
 
-<div
-class="number"
-id="sentCount">
-0
-</div>
 
-<div class="muted">
-MESSAGES LOGGED
-</div>
+        <div class="stat">
 
-</div>
+          <div
+            class="stat-number"
+            id="engineStatus"
+          >
+            OFF
+          </div>
 
+          <div class="stat-label">
+            AUTOMATION ENGINE
+          </div>
 
-<div class="card">
+        </div>
 
-<div
-class="number">
-READY
-</div>
+      </div>
 
-<div class="muted">
-AUTOMATION ENGINE
-</div>
 
-</div>
+      <div
+        style="
+        margin-top:20px;
+        padding:15px;
+        border:1px solid #003d25;
+        font-size:11px;
+        line-height:1.8;
+        "
+      >
 
+        <div>
+          SYSTEM:
+          <span style="color:#00ff88">
+            ONLINE
+          </span>
+        </div>
 
-</section>
+        <div>
+          NETWORK:
+          <span style="color:#00ff88">
+            SECURE
+          </span>
+        </div>
 
+        <div>
+          ENGINE:
+          <span id="engineText"
+                style="color:#ffff00">
+            STANDBY
+          </span>
+        </div>
 
+      </div>
 
-<!-- AUTOMATION -->
+    </div>
 
-<section
-class="panel"
-style="margin-top:16px"
->
 
-<div class="title">
-AUTOMATION QUEUE
-</div>
+    <!-- AUTOMATION -->
 
+    <div class="panel">
 
-<label>
-TARGET
-</label>
+      <h2>
+        [ AUTOMATION QUEUE ]
+      </h2>
 
-<input
-id="target"
-placeholder="Target number or group JID"
->
 
+      <input
+        id="target"
+        type="text"
+        placeholder="TARGET NUMBER: 919XXXXXXXXX"
+      >
 
-<label>
-PREFIX
-</label>
 
-<input
-id="prefix"
-placeholder="Optional prefix"
->
+      <input
+        id="prefix"
+        type="text"
+        placeholder="MESSAGE PREFIX"
+      >
 
 
-<label>
-MESSAGES — ONE PER LINE
-</label>
+      <textarea
+        id="messages"
+        rows="6"
+        placeholder="ENTER MESSAGE&#10;One message per line"
+      ></textarea>
 
-<textarea
-id="messages"
-placeholder="Enter message 01
-Enter message 02
-Enter message 03"
-></textarea>
 
+      <input
+        id="speed"
+        type="number"
+        value="5"
+        min="1"
+        placeholder="DELAY"
+      >
 
-<label>
-DELAY / SPEED (SECONDS)
-</label>
 
-<input
-id="speed"
-type="number"
-min="1"
-value="10"
->
+      <button
+        onclick="startAutomation()"
+      >
+        [ START AUTOMATION ]
+      </button>
 
 
-<div style="
-display:grid;
-grid-template-columns:1fr 1fr;
-gap:10px;
-">
+      <button
+        class="stop"
+        onclick="stopAutomation()"
+      >
+        [ STOP AUTOMATION ]
+      </button>
 
-<button onclick="startAutomation()">
-[ START QUEUE ]
-</button>
+    </div>
 
-<button
-class="danger"
-onclick="stopAutomation()"
->
-[ STOP QUEUE ]
-</button>
+  </div>
 
-</div>
 
-</section>
+  <!-- TERMINAL -->
 
+  <div class="terminal">
 
+    <div class="terminal-title">
+      ◈ LIVE SYSTEM TERMINAL
+    </div>
 
-<!-- TERMINAL -->
 
-<section class="terminal">
+    <div id="terminal">
 
-<div class="title">
-SYSTEM TERMINAL
-</div>
+      <div class="log-green">
+        &gt; SUIYAN PAPA TOOL INITIALIZED
+      </div>
 
-<div
-id="logs"
-class="logs"
->
+      <div class="log-cyan">
+        &gt; SYSTEM ONLINE
+      </div>
 
-<div>
-<b>[BOOT]</b>
-SUIYAN PAPA TOOL initialized...
-</div>
+      <div class="log-green">
+        &gt; WAITING FOR WHATSAPP SESSION...
+      </div>
 
-<div>
-<b>[SYSTEM]</b>
-Neon control interface loaded.
-</div>
+    </div>
 
-<div>
-<b>[SECURITY]</b>
-Waiting for operator authentication...
-<span class="cursor"></span>
-</div>
+  </div>
 
-</div>
 
-</section>
+  <div class="footer">
+    SUIYAN PAPA TOOL // NODE AUTOMATION SYSTEM
+  </div>
 
-
-</main>
-
-</div>
 
 </div>
 
 
 <script>
 
+/* ================================
+   GLOBAL SESSION
+================================ */
 
-const $ =
-id => document.getElementById(id);
+let currentSession = '';
+
+let pairingTimer = null;
+
+let statsTimer = null;
 
 
-function log(text){
+/* ================================
+   TERMINAL
+================================ */
 
-  const logs =
-    $("logs");
+function terminal(
+  message,
+  type = 'green'
+) {
 
-  logs.insertAdjacentHTML(
-    "beforeend",
+  const box =
+    document.getElementById(
+      'terminal'
+    );
 
-    `<div>
-      <b>[${new Date().toLocaleTimeString()}]</b>
-      ${text}
-    </div>`
-  );
 
-  logs.scrollTop =
-    logs.scrollHeight;
+  const line =
+    document.createElement(
+      'div'
+    );
+
+
+  line.className =
+    `log-${type}`;
+
+
+  line.innerText =
+    `> ${message}`;
+
+
+  box.appendChild(line);
+
+
+  box.scrollTop =
+    box.scrollHeight;
+
 }
 
 
+/* ================================
+   LOGIN
+================================ */
 
-async function login(){
+async function login() {
 
   const phone =
-    $("phone").value.trim();
+    document
+      .getElementById('phone')
+      .value
+      .trim();
 
 
-  if(!phone){
+  if (!phone) {
 
-    log(
-      "ERROR: PHONE NUMBER REQUIRED."
+    alert(
+      'Enter WhatsApp phone number'
     );
 
     return;
+
   }
 
 
-  try{
+  terminal(
+    'Initializing WhatsApp session...',
+    'cyan'
+  );
+
+
+  document
+    .getElementById(
+      'connectionStatus'
+    )
+    .innerText =
+      'NODE STATUS: CONNECTING...';
+
+
+  try {
 
     const response =
       await fetch(
-        "/api/login",
+        '/api/login',
         {
-          method:"POST",
 
-          headers:{
-            "Content-Type":
-            "application/json"
+          method:
+            'POST',
+
+          headers: {
+            'Content-Type':
+              'application/json'
           },
 
           body:
-          JSON.stringify({
-            phone:phone
-          })
+            JSON.stringify({
+              phone:
+                phone
+            })
+
         }
       );
 
@@ -984,37 +1126,78 @@ async function login(){
       await response.json();
 
 
-    $("session").value =
-      data.sessionId || "";
+    if (!data.success) {
 
-
-    if(data.success){
-
-      log(
-        "SESSION INITIALIZED :: "
-        + data.sessionId
+      terminal(
+        data.message ||
+        'Login failed',
+        'red'
       );
 
-    }else{
-
-      log(
-        "ERROR :: "
-        + (data.error ||
-        "LOGIN FAILED")
+      alert(
+        data.message ||
+        'Login failed'
       );
+
+      return;
 
     }
 
 
-    loadSessions();
+    currentSession =
+      data.sessionId;
 
-  }
 
-  catch(error){
+    document
+      .getElementById(
+        'session'
+      )
+      .value =
+        currentSession;
 
-    log(
-      "SERVER ERROR :: "
-      + error.message
+
+    document
+      .getElementById(
+        'pairBox'
+      )
+      .style.display =
+        'block';
+
+
+    document
+      .getElementById(
+        'pairingCode'
+      )
+      .innerText =
+        'GENERATING...';
+
+
+    terminal(
+      'Session created: ' +
+      currentSession,
+      'green'
+    );
+
+
+    terminal(
+      'Waiting for pairing code...',
+      'yellow'
+    );
+
+
+    checkPairingCode(
+      currentSession
+    );
+
+
+    startStats();
+
+  } catch (error) {
+
+    terminal(
+      'Connection error: ' +
+      error.message,
+      'red'
     );
 
   }
@@ -1022,66 +1205,259 @@ async function login(){
 }
 
 
+/* ================================
+   PAIRING CODE
+================================ */
 
-async function startAutomation(){
+function checkPairingCode(
+  sessionId
+) {
+
+  if (pairingTimer) {
+
+    clearInterval(
+      pairingTimer
+    );
+
+  }
+
+
+  pairingTimer =
+    setInterval(
+      async () => {
+
+        try {
+
+          const response =
+            await fetch(
+              `/api/pairing-code/${sessionId}`
+            );
+
+
+          const data =
+            await response.json();
+
+
+          if (
+            data.status ===
+            'ready'
+          ) {
+
+            document
+              .getElementById(
+                'pairingCode'
+              )
+              .innerText =
+                data.pairingCode;
+
+
+            document
+              .getElementById(
+                'connectionStatus'
+              )
+              .innerText =
+                'NODE STATUS: PAIRING CODE READY';
+
+
+            terminal(
+              'PAIRING CODE READY: ' +
+              data.pairingCode,
+              'cyan'
+            );
+
+
+            terminal(
+              'Open WhatsApp → Linked Devices → Link with phone number',
+              'yellow'
+            );
+
+
+            clearInterval(
+              pairingTimer
+            );
+
+          }
+
+
+          if (
+            data.status ===
+            'error'
+          ) {
+
+            document
+              .getElementById(
+                'pairingCode'
+              )
+              .innerText =
+                'ERROR';
+
+
+            terminal(
+              'Pairing error: ' +
+              data.message,
+              'red'
+            );
+
+
+            clearInterval(
+              pairingTimer
+            );
+
+          }
+
+        } catch (error) {
+
+          console.log(
+            error
+          );
+
+        }
+
+      },
+      2000
+    );
+
+}
+
+
+/* ================================
+   START AUTOMATION
+================================ */
+
+async function startAutomation() {
 
   const sessionId =
-    $("session").value.trim();
+    document
+      .getElementById(
+        'session'
+      )
+      .value
+      .trim();
+
 
   const target =
-    $("target").value.trim();
+    document
+      .getElementById(
+        'target'
+      )
+      .value
+      .trim();
 
-  const messages =
-    $("messages")
-    .value
-    .split("\n")
-    .map(x=>x.trim())
-    .filter(Boolean);
 
   const prefix =
-    $("prefix").value;
+    document
+      .getElementById(
+        'prefix'
+      )
+      .value
+      .trim();
+
+
+  const rawMessages =
+    document
+      .getElementById(
+        'messages'
+      )
+      .value;
+
 
   const speed =
-    Number(
-      $("speed").value
-    ) || 10;
+    document
+      .getElementById(
+        'speed'
+      )
+      .value;
 
 
-  if(
-    !sessionId ||
-    !target ||
-    !messages.length
-  ){
+  if (!sessionId) {
 
-    log(
-      "ERROR :: SESSION / TARGET / MESSAGE REQUIRED."
+    alert(
+      'Initialize WhatsApp session first'
     );
 
     return;
+
   }
 
 
-  try{
+  if (!target) {
+
+    alert(
+      'Enter target number'
+    );
+
+    return;
+
+  }
+
+
+  const messages =
+    rawMessages
+      .split('\n')
+      .map(
+        item =>
+          item.trim()
+      )
+      .filter(
+        item =>
+          item.length > 0
+      );
+
+
+  if (
+    messages.length === 0
+  ) {
+
+    alert(
+      'Enter at least one message'
+    );
+
+    return;
+
+  }
+
+
+  terminal(
+    'Adding messages to queue...',
+    'cyan'
+  );
+
+
+  try {
 
     const response =
       await fetch(
-        "/api/start-automation",
+        '/api/start-automation',
         {
-          method:"POST",
 
-          headers:{
-            "Content-Type":
-            "application/json"
+          method:
+            'POST',
+
+          headers: {
+            'Content-Type':
+              'application/json'
           },
 
           body:
-          JSON.stringify({
-            sessionId,
-            target,
-            messages,
-            prefix,
-            speed
-          })
+            JSON.stringify({
+
+              sessionId:
+                sessionId,
+
+              target:
+                target,
+
+              prefix:
+                prefix,
+
+              messages:
+                messages,
+
+              speed:
+                Number(speed) || 5
+
+            })
+
         }
       );
 
@@ -1090,32 +1466,58 @@ async function startAutomation(){
       await response.json();
 
 
-    if(data.success){
+    if (!data.success) {
 
-      log(
-        "QUEUE STARTED :: "
-        + data.queued
-        + " MESSAGE(S)"
+      terminal(
+        data.message ||
+        'Failed to start',
+        'red'
       );
+
+      alert(
+        data.message ||
+        'Failed to start'
+      );
+
+      return;
 
     }
 
-    else{
 
-      log(
-        "ERROR :: "
-        + data.error
-      );
+    document
+      .getElementById(
+        'engineStatus'
+      )
+      .innerText =
+        'ON';
 
-    }
 
-  }
+    document
+      .getElementById(
+        'engineText'
+      )
+      .innerText =
+        'ACTIVE';
 
-  catch(error){
 
-    log(
-      "SERVER ERROR :: "
-      + error.message
+    terminal(
+      data.message,
+      'green'
+    );
+
+
+    terminal(
+      'Automation engine started',
+      'green'
+    );
+
+
+  } catch (error) {
+
+    terminal(
+      'Automation error: ' +
+      error.message,
+      'red'
     );
 
   }
@@ -1123,72 +1525,80 @@ async function startAutomation(){
 }
 
 
+/* ================================
+   STOP AUTOMATION
+================================ */
 
-async function stopAutomation(){
+async function stopAutomation() {
 
   const sessionId =
-    $("session").value.trim();
+    document
+      .getElementById(
+        'session'
+      )
+      .value
+      .trim();
 
 
-  if(!sessionId){
-
-    log(
-      "ERROR :: NO ACTIVE SESSION."
-    );
+  if (!sessionId) {
 
     return;
+
   }
 
 
-  try{
+  try {
 
-    const response =
-      await fetch(
-        "/api/stop-automation",
-        {
-          method:"POST",
+    await fetch(
+      '/api/stop-automation',
+      {
 
-          headers:{
-            "Content-Type":
-            "application/json"
-          },
+        method:
+          'POST',
 
-          body:
+        headers: {
+          'Content-Type':
+            'application/json'
+        },
+
+        body:
           JSON.stringify({
-            sessionId
+            sessionId:
+              sessionId
           })
-        }
-      );
+
+      }
+    );
 
 
-    const data =
-      await response.json();
+    document
+      .getElementById(
+        'engineStatus'
+      )
+      .innerText =
+        'OFF';
 
 
-    if(data.success){
+    document
+      .getElementById(
+        'engineText'
+      )
+      .innerText =
+        'STANDBY';
 
-      log(
-        "QUEUE STOPPED :: ALL AUTOMATION HALTED."
-      );
 
-    }
+    terminal(
+      'Automation stopped',
+      'red'
+    );
 
-    else{
 
-      log(
-        "ERROR :: "
-        + data.error
-      );
+  } catch (error) {
 
-    }
-
-  }
-
-  catch(error){
-
-    log(
-      "SERVER ERROR :: "
-      + error.message
+    terminal(
+      'Stop error: ' +
+      error.message,
+      'red'
     );
 
   }
@@ -1196,43 +1606,161 @@ async function stopAutomation(){
 }
 
 
+/* ================================
+   SYSTEM STATS
+================================ */
 
-async function loadSessions(){
+function startStats() {
 
-  try{
+  if (statsTimer) {
+
+    clearInterval(
+      statsTimer
+    );
+
+  }
+
+
+  updateStats();
+
+
+  statsTimer =
+    setInterval(
+      updateStats,
+      5000
+    );
+
+}
+
+
+async function updateStats() {
+
+  try {
 
     const response =
       await fetch(
-        "/api/sessions"
+        '/api/sessions'
       );
+
 
     const data =
       await response.json();
 
 
-    $("sessionCount")
-      .textContent =
-      (data.sessions || [])
-      .length;
+    if (!data.success) {
 
-  }
+      return;
 
-  catch(error){
+    }
 
-    // server unavailable
+
+    const sessions =
+      data.sessions || [];
+
+
+    let active = 0;
+
+    let sent = 0;
+
+
+    sessions.forEach(
+      session => {
+
+        if (
+          Number(
+            session.isConnected
+          ) === 1
+        ) {
+
+          active++;
+
+        }
+
+
+        sent +=
+          Number(
+            session.sentCount ||
+            0
+          );
+
+      }
+    );
+
+
+    document
+      .getElementById(
+        'activeSessions'
+      )
+      .innerText =
+        active;
+
+
+    document
+      .getElementById(
+        'messagesSent'
+      )
+      .innerText =
+        sent;
+
+
+    if (
+      currentSession
+    ) {
+
+      const current =
+        sessions.find(
+          session =>
+            session.id ===
+            currentSession
+        );
+
+
+      if (
+        current &&
+        Number(
+          current.isConnected
+        ) === 1
+      ) {
+
+        document
+          .getElementById(
+            'connectionStatus'
+          )
+          .innerText =
+            'NODE STATUS: WHATSAPP CONNECTED';
+
+
+        terminal(
+          'WhatsApp connected successfully',
+          'green'
+        );
+
+      }
+
+    }
+
+  } catch (error) {
+
+    console.log(
+      error
+    );
+
   }
 
 }
 
 
-loadSessions();
+/* ================================
+   START
+================================ */
 
-setInterval(
-  loadSessions,
-  10000
+terminal(
+  'System ready',
+  'green'
 );
 
 </script>
 
 </body>
+
 </html>
