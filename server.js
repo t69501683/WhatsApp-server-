@@ -19,7 +19,7 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 
 app.use(cors());
-app.use(express.json());
+app.use(express.json({ limit: '2mb' }));
 
 app.use(
   express.static(
@@ -79,7 +79,8 @@ db.serialize(() => {
 
 const sockets = {};
 const pairingCodes = {};
-const queueIntervals = {};
+const queueTimers = {};
+const queueProcessing = {};
 const connectingSessions = {};
 
 
@@ -234,7 +235,13 @@ async function connectWA(phone, sessionId) {
           ];
 
 
-          startQueueProcessor(
+          /*
+           * Start queue.
+           * Processor itself controls
+           * the exact message delay.
+           */
+
+          processQueue(
             sessionId
           );
 
@@ -273,7 +280,31 @@ async function connectWA(phone, sessionId) {
 
 
           /*
-           * Reconnect after 5 seconds
+           * Clear pending timer.
+           */
+
+          if (
+            queueTimers[sessionId]
+          ) {
+
+            clearTimeout(
+              queueTimers[sessionId]
+            );
+
+            delete queueTimers[
+              sessionId
+            ];
+
+          }
+
+
+          queueProcessing[
+            sessionId
+          ] = false;
+
+
+          /*
+           * Reconnect after 5 seconds.
            */
 
           setTimeout(
@@ -616,13 +647,7 @@ app.post(
     }
 
 
-    /*
-     * Only add messages to queue.
-     * They will be sent after WhatsApp
-     * is connected.
-     */
-
-    let pending =
+    const pending =
       messages.filter(
         message =>
           String(message).trim()
@@ -643,6 +668,13 @@ app.post(
       });
 
     }
+
+
+    const delaySeconds =
+      Math.max(
+        1,
+        Number(speed) || 5
+      );
 
 
     pending.forEach(
@@ -667,11 +699,22 @@ app.post(
             cleanPhone(target),
             prefix,
             String(message),
-            Number(speed) || 5
+            delaySeconds
           ]
         );
 
       }
+    );
+
+
+    /*
+     * Start processor immediately.
+     * It will respect each item's
+     * configured delay.
+     */
+
+    processQueue(
+      sessionId
     );
 
 
@@ -680,7 +723,10 @@ app.post(
       success: true,
 
       message:
-        `${pending.length} message(s) added to queue`
+        `${pending.length} message(s) added to queue`,
+
+      delay:
+        delaySeconds
 
     });
 
@@ -725,6 +771,26 @@ app.post(
     );
 
 
+    if (
+      queueTimers[sessionId]
+    ) {
+
+      clearTimeout(
+        queueTimers[sessionId]
+      );
+
+      delete queueTimers[
+        sessionId
+      ];
+
+    }
+
+
+    queueProcessing[
+      sessionId
+    ] = false;
+
+
     res.json({
 
       success: true,
@@ -742,12 +808,35 @@ app.post(
    QUEUE PROCESSOR
 ================================ */
 
-function startQueueProcessor(
+/*
+ * IMPORTANT:
+ *
+ * There is NO fixed 3-second interval now.
+ *
+ * Each message has its own "speed"
+ * value in seconds.
+ *
+ * Example:
+ *
+ * speed = 10
+ *
+ * Message 1
+ *      ↓
+ * 10 seconds
+ *      ↓
+ * Message 2
+ *      ↓
+ * 10 seconds
+ *      ↓
+ * Message 3
+ */
+
+async function processQueue(
   sessionId
 ) {
 
   if (
-    queueIntervals[sessionId]
+    queueProcessing[sessionId]
   ) {
 
     return;
@@ -755,181 +844,81 @@ function startQueueProcessor(
   }
 
 
-  console.log(
-    chalk.cyan(
-      `[${sessionId}] Queue processor started`
-    )
-  );
-
-
-  queueIntervals[
+  queueProcessing[
     sessionId
-  ] = setInterval(
-    async () => {
-
-      const socket =
-        sockets[sessionId];
+  ] = true;
 
 
-      if (!socket) {
+  try {
 
-        return;
-
-      }
-
-
-      db.get(
-        `
-        SELECT *
-        FROM messageQueue
-        WHERE sessionId = ?
-        AND isActive = 1
-        ORDER BY id ASC
-        LIMIT 1
-        `,
-        [sessionId],
-        async (
-          error,
-          item
-        ) => {
-
-          if (error) {
-
-            console.log(
-              chalk.red(
-                `[${sessionId}] Queue database error:`
-              ),
-              error.message
-            );
-
-            return;
-
-          }
+    const socket =
+      sockets[sessionId];
 
 
-          if (!item) {
+    if (!socket) {
 
-            return;
+      queueProcessing[
+        sessionId
+      ] = false;
 
-          }
+      return;
 
-
-          try {
-
-            const target =
-              cleanPhone(
-                item.target
-              );
+    }
 
 
-            if (!target) {
+    db.get(
+      `
+      SELECT *
+      FROM messageQueue
+      WHERE sessionId = ?
+      AND isActive = 1
+      ORDER BY id ASC
+      LIMIT 1
+      `,
+      [sessionId],
+      async (
+        error,
+        item
+      ) => {
 
-              db.run(
-                `
-                UPDATE messageQueue
-                SET isActive = 0
-                WHERE id = ?
-                `,
-                [item.id]
-              );
+        if (error) {
 
-              return;
+          console.log(
+            chalk.red(
+              `[${sessionId}] Queue database error:`
+            ),
+            error.message
+          );
 
-            }
+          queueProcessing[
+            sessionId
+          ] = false;
 
+          return;
 
-            const chatId =
-              `${target}@s.whatsapp.net`;
-
-
-            const fullMsg =
-              `${item.prefix || ''} ${item.message}`
-                .trim();
+        }
 
 
-            console.log(
-              chalk.cyan(
-                `[${sessionId}] Sending message to ${target}...`
-              )
+        if (!item) {
+
+          queueProcessing[
+            sessionId
+          ] = false;
+
+          return;
+
+        }
+
+
+        try {
+
+          const target =
+            cleanPhone(
+              item.target
             );
 
 
-            await socket.sendMessage(
-              chatId,
-              {
-                text: fullMsg
-              }
-            );
-
-
-            console.log(
-              chalk.green(
-                `[${sessionId}] Message sent successfully`
-              )
-            );
-
-
-            db.run(
-              `
-              INSERT INTO sentLogs
-              (
-                sessionId,
-                target,
-                message
-              )
-              VALUES (?, ?, ?)
-              `,
-              [
-                sessionId,
-                target,
-                fullMsg
-              ]
-            );
-
-
-            db.run(
-              `
-              UPDATE sessions
-              SET sentCount =
-                sentCount + 1
-              WHERE id = ?
-              `,
-              [sessionId]
-            );
-
-
-            /*
-             * Mark message as completed.
-             * This prevents duplicate sending.
-             */
-
-            db.run(
-              `
-              UPDATE messageQueue
-              SET
-                sentCount =
-                  sentCount + 1,
-                isActive = 0
-              WHERE id = ?
-              `,
-              [item.id]
-            );
-
-
-          } catch (error) {
-
-            console.log(
-              chalk.red(
-                `[${sessionId}] Message send error:`
-              ),
-              error.message
-            );
-
-
-            /*
-             * Stop failed item so it doesn't
-             * loop endlessly.
-             */
+          if (!target) {
 
             db.run(
               `
@@ -937,17 +926,238 @@ function startQueueProcessor(
               SET isActive = 0
               WHERE id = ?
               `,
-              [item.id]
+              [item.id],
+              () => {
+
+                queueProcessing[
+                  sessionId
+                ] = false;
+
+                processQueue(
+                  sessionId
+                );
+
+              }
             );
+
+            return;
 
           }
 
-        }
-      );
 
-    },
-    3000
-  );
+          const chatId =
+            `${target}@s.whatsapp.net`;
+
+
+          const fullMsg =
+            `${item.prefix || ''} ${item.message}`
+              .trim();
+
+
+          console.log(
+            chalk.cyan(
+              `[${sessionId}] Sending message #${item.id} to ${target}...`
+            )
+          );
+
+
+          /*
+           * ACTUAL SEND
+           */
+
+          await socket.sendMessage(
+            chatId,
+            {
+              text: fullMsg
+            }
+          );
+
+
+          console.log(
+            chalk.green(
+              `[${sessionId}] Message sent successfully`
+            )
+          );
+
+
+          /*
+           * SAVE LOG
+           */
+
+          db.run(
+            `
+            INSERT INTO sentLogs
+            (
+              sessionId,
+              target,
+              message
+            )
+            VALUES (?, ?, ?)
+            `,
+            [
+              sessionId,
+              target,
+              fullMsg
+            ]
+          );
+
+
+          /*
+           * UPDATE SESSION COUNT
+           */
+
+          db.run(
+            `
+            UPDATE sessions
+            SET sentCount =
+              sentCount + 1
+            WHERE id = ?
+            `,
+            [sessionId]
+          );
+
+
+          /*
+           * MARK CURRENT MESSAGE COMPLETE
+           */
+
+          db.run(
+            `
+            UPDATE messageQueue
+            SET
+              sentCount =
+                sentCount + 1,
+              isActive = 0
+            WHERE id = ?
+            `,
+            [item.id],
+            () => {
+
+              queueProcessing[
+                sessionId
+              ] = false;
+
+
+              /*
+               * IMPORTANT:
+               *
+               * Wait exactly the number
+               * of seconds selected by user.
+               */
+
+              const delaySeconds =
+                Math.max(
+                  1,
+                  Number(item.speed) || 5
+                );
+
+
+              const delayMs =
+                delaySeconds * 1000;
+
+
+              console.log(
+                chalk.yellow(
+                  `[${sessionId}] Next message in ${delaySeconds} second(s)`
+                )
+              );
+
+
+              queueTimers[
+                sessionId
+              ] = setTimeout(
+                () => {
+
+                  delete queueTimers[
+                    sessionId
+                  ];
+
+                  processQueue(
+                    sessionId
+                  );
+
+                },
+                delayMs
+              );
+
+            }
+          );
+
+
+        } catch (error) {
+
+          console.log(
+            chalk.red(
+              `[${sessionId}] Message send error:`
+            ),
+            error.message
+          );
+
+
+          /*
+           * Failed message is stopped
+           * so it doesn't retry endlessly.
+           */
+
+          db.run(
+            `
+            UPDATE messageQueue
+            SET isActive = 0
+            WHERE id = ?
+            `,
+            [item.id],
+            () => {
+
+              queueProcessing[
+                sessionId
+              ] = false;
+
+
+              /*
+               * Continue with next queued
+               * message after a small delay.
+               */
+
+              queueTimers[
+                sessionId
+              ] = setTimeout(
+                () => {
+
+                  delete queueTimers[
+                    sessionId
+                  ];
+
+                  processQueue(
+                    sessionId
+                  );
+
+                },
+                1000
+              );
+
+            }
+          );
+
+        }
+
+      }
+    );
+
+  } catch (error) {
+
+    console.log(
+      chalk.red(
+        `[${sessionId}] Queue processor error:`
+      ),
+      error.message
+    );
+
+
+    queueProcessing[
+      sessionId
+    ] = false;
+
+  }
 
 }
 
@@ -1080,6 +1290,7 @@ app.listen(
   () => {
 
     console.log('');
+
     console.log(
       chalk.green(
         '======================================'
