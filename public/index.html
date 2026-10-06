@@ -1,0 +1,1238 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>SUIYAN PAPA TOOL</title>
+
+<style>
+*{
+  box-sizing:border-box;
+  margin:0;
+  padding:0;
+}
+
+:root{
+  --green:#00ff66;
+  --cyan:#00eaff;
+  --blue:#2979ff;
+  --purple:#9b00ff;
+  --pink:#ff00d4;
+  --red:#ff1744;
+  --bg:#020304;
+  --panel:rgba(4,10,8,.88);
+}
+
+html,body{
+  min-height:100%;
+}
+
+body{
+  background:
+    radial-gradient(circle at 15% 20%,rgba(0,255,102,.09),transparent 25%),
+    radial-gradient(circle at 85% 20%,rgba(0,234,255,.08),transparent 25%),
+    radial-gradient(circle at 50% 100%,rgba(255,0,212,.07),transparent 30%),
+    #020304;
+
+  color:#dffff0;
+
+  font-family:
+    "Courier New",
+    monospace;
+
+  overflow-x:hidden;
+}
+
+/* MATRIX / SCANLINES */
+
+body::before{
+  content:"";
+  position:fixed;
+  inset:0;
+  pointer-events:none;
+  z-index:999;
+
+  background:
+    repeating-linear-gradient(
+      0deg,
+      transparent 0px,
+      transparent 3px,
+      rgba(0,255,100,.035) 4px
+    );
+
+  animation:scan 8s linear infinite;
+}
+
+body::after{
+  content:"";
+  position:fixed;
+  inset:0;
+  pointer-events:none;
+
+  background:
+    linear-gradient(
+      90deg,
+      transparent,
+      rgba(0,255,102,.025),
+      transparent
+    );
+
+  animation:moveLight 5s linear infinite;
+}
+
+@keyframes scan{
+  from{transform:translateY(0)}
+  to{transform:translateY(20px)}
+}
+
+@keyframes moveLight{
+  0%{transform:translateX(-100%)}
+  100%{transform:translateX(100%)}
+}
+
+
+/* MAIN */
+
+.wrapper{
+  width:min(1200px,94%);
+  margin:auto;
+  padding:22px 0 40px;
+}
+
+
+/* HEADER */
+
+.header{
+  position:relative;
+
+  padding:28px 20px;
+
+  border:1px solid #00ff6640;
+
+  background:
+    linear-gradient(
+      135deg,
+      rgba(0,255,102,.06),
+      rgba(0,0,0,.8),
+      rgba(255,0,212,.04)
+    );
+
+  box-shadow:
+    0 0 15px #00ff6615,
+    inset 0 0 30px #00ff6608;
+
+  overflow:hidden;
+}
+
+
+/* RGB LINE */
+
+.header::before{
+  content:"";
+
+  position:absolute;
+  top:0;
+  left:-100%;
+  width:100%;
+  height:2px;
+
+  background:
+    linear-gradient(
+      90deg,
+      #ff0000,
+      #ffff00,
+      #00ff00,
+      #00ffff,
+      #0066ff,
+      #ff00ff,
+      #ff0000
+    );
+
+  animation:rgbLine 3s linear infinite;
+
+  box-shadow:
+    0 0 15px #00ff66,
+    0 0 25px #ff00ff;
+}
+
+@keyframes rgbLine{
+  0%{left:-100%}
+  100%{left:100%}
+}
+
+
+/* LOGO */
+
+.logo{
+  text-align:center;
+
+  font-size:
+    clamp(28px,7vw,68px);
+
+  font-weight:900;
+
+  letter-spacing:
+    clamp(2px,1vw,9px);
+
+  text-transform:uppercase;
+
+  background:
+    linear-gradient(
+      90deg,
+      #ff1744,
+      #ffea00,
+      #00ff66,
+      #00eaff,
+      #2979ff,
+      #9b00ff,
+      #ff00d4,
+      #ff1744
+    );
+
+  background-size:400% 100%;
+
+  -webkit-background-clip:text;
+  background-clip:text;
+
+  color:transparent;
+
+  animation:
+    rgbText 4s linear infinite,
+    glitch 3s infinite;
+
+  filter:
+    drop-shadow(0 0 4px #00ff66)
+    drop-shadow(0 0 12px #ff00d4);
+
+  position:relative;
+}
+
+@keyframes rgbText{
+  0%{background-position:0%}
+  100%{background-position:400%}
+}
+
+@keyframes glitch{
+  0%,90%,100%{
+    transform:translate(0);
+  }
+
+  92%{
+    transform:translate(-2px,1px);
+  }
+
+  94%{
+    transform:translate(2px,-1px);
+  }
+
+  96%{
+    transform:translate(-1px,0);
+  }
+}
+
+
+.subtitle{
+  text-align:center;
+
+  margin-top:10px;
+
+  color:#65ffb0;
+
+  font-size:
+    clamp(9px,2vw,13px);
+
+  letter-spacing:4px;
+
+  text-shadow:
+    0 0 8px #00ff66;
+}
+
+
+/* STATUS */
+
+.status{
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  gap:9px;
+
+  margin-top:16px;
+
+  font-size:11px;
+
+  color:#00ff66;
+
+  letter-spacing:2px;
+}
+
+.status-dot{
+  width:8px;
+  height:8px;
+
+  border-radius:50%;
+
+  background:#00ff66;
+
+  box-shadow:
+    0 0 6px #00ff66,
+    0 0 15px #00ff66,
+    0 0 25px #00ff66;
+
+  animation:pulse 1s infinite;
+}
+
+@keyframes pulse{
+  50%{
+    opacity:.35;
+    transform:scale(.65);
+  }
+}
+
+
+/* GRID */
+
+.grid{
+  display:grid;
+
+  grid-template-columns:
+    280px 1fr;
+
+  gap:16px;
+
+  margin-top:18px;
+}
+
+
+/* PANELS */
+
+.panel{
+  position:relative;
+
+  padding:18px;
+
+  background:var(--panel);
+
+  border:1px solid #00ff6630;
+
+  box-shadow:
+    0 0 25px #000,
+    inset 0 0 25px #00ff6605;
+
+  overflow:hidden;
+}
+
+.panel::before{
+  content:"";
+
+  position:absolute;
+
+  left:0;
+  top:0;
+
+  width:3px;
+  height:100%;
+
+  background:
+    linear-gradient(
+      #ff1744,
+      #ffea00,
+      #00ff66,
+      #00eaff,
+      #2979ff,
+      #ff00d4
+    );
+
+  box-shadow:
+    0 0 10px #00ff66;
+}
+
+.title{
+  color:#00ff66;
+
+  font-size:12px;
+
+  letter-spacing:2px;
+
+  margin-bottom:15px;
+
+  text-shadow:
+    0 0 8px #00ff66;
+}
+
+.title::before{
+  content:"// ";
+  color:#ff00d4;
+}
+
+
+/* INPUT */
+
+label{
+  display:block;
+
+  margin:
+    14px 0 6px;
+
+  color:#63b987;
+
+  font-size:10px;
+
+  letter-spacing:1px;
+}
+
+input,
+textarea{
+  width:100%;
+
+  border:1px solid #164d2d;
+
+  outline:none;
+
+  background:#010503;
+
+  color:#dffff0;
+
+  padding:11px;
+
+  font-family:inherit;
+
+  font-size:12px;
+
+  transition:.2s;
+
+  border-radius:2px;
+}
+
+input:focus,
+textarea:focus{
+  border-color:#00ff66;
+
+  box-shadow:
+    0 0 8px #00ff6630,
+    inset 0 0 10px #00ff6608;
+}
+
+textarea{
+  min-height:150px;
+
+  resize:vertical;
+}
+
+
+/* BUTTON */
+
+button{
+  width:100%;
+
+  padding:12px;
+
+  margin-top:12px;
+
+  border:1px solid #00ff66;
+
+  background:
+    linear-gradient(
+      90deg,
+      #021a0b,
+      #063719,
+      #021a0b
+    );
+
+  color:#00ff66;
+
+  font-family:inherit;
+
+  font-weight:bold;
+
+  letter-spacing:2px;
+
+  cursor:pointer;
+
+  transition:.2s;
+
+  text-shadow:
+    0 0 8px #00ff66;
+
+  box-shadow:
+    0 0 8px #00ff6615;
+}
+
+button:hover{
+  color:#fff;
+
+  border-color:#00ffff;
+
+  box-shadow:
+    0 0 10px #00ff66,
+    0 0 25px #00ffff40;
+
+  transform:translateY(-1px);
+}
+
+.danger{
+  border-color:#ff1744;
+
+  color:#ff4d70;
+
+  background:
+    linear-gradient(
+      90deg,
+      #190208,
+      #350510,
+      #190208
+    );
+
+  text-shadow:
+    0 0 8px #ff1744;
+}
+
+.danger:hover{
+  border-color:#ff00d4;
+
+  box-shadow:
+    0 0 10px #ff1744,
+    0 0 25px #ff00d440;
+}
+
+
+/* CARDS */
+
+.cards{
+  display:grid;
+
+  grid-template-columns:
+    repeat(3,1fr);
+
+  gap:10px;
+}
+
+.card{
+  padding:16px;
+
+  background:
+    linear-gradient(
+      135deg,
+      rgba(0,255,102,.05),
+      rgba(0,0,0,.7)
+    );
+
+  border:1px solid #164d2d;
+
+  text-align:center;
+
+  transition:.2s;
+}
+
+.card:hover{
+  border-color:#00ff66;
+
+  box-shadow:
+    0 0 18px #00ff6618;
+}
+
+.number{
+  font-size:24px;
+
+  color:#00ff66;
+
+  font-weight:900;
+
+  text-shadow:
+    0 0 10px #00ff66;
+}
+
+.muted{
+  margin-top:4px;
+
+  color:#4f936d;
+
+  font-size:9px;
+
+  letter-spacing:1px;
+}
+
+
+/* TERMINAL */
+
+.terminal{
+  margin-top:16px;
+
+  min-height:230px;
+
+  background:#010302;
+
+  border:1px solid #174d2c;
+
+  padding:15px;
+
+  box-shadow:
+    inset 0 0 30px #00ff6605;
+}
+
+.logs{
+  color:#71e89c;
+
+  font-size:11px;
+
+  line-height:1.9;
+
+  max-height:170px;
+
+  overflow:auto;
+}
+
+.logs b{
+  color:#00ff66;
+
+  text-shadow:
+    0 0 6px #00ff66;
+}
+
+.cursor{
+  display:inline-block;
+
+  width:7px;
+  height:12px;
+
+  background:#00ff66;
+
+  margin-left:3px;
+
+  animation:blink .8s infinite;
+}
+
+@keyframes blink{
+  50%{opacity:0}
+}
+
+
+/* MOBILE */
+
+@media(max-width:800px){
+
+  .grid{
+    grid-template-columns:1fr;
+  }
+
+  .cards{
+    grid-template-columns:1fr;
+  }
+
+  .logo{
+    letter-spacing:3px;
+  }
+}
+</style>
+</head>
+
+
+<body>
+
+<div class="wrapper">
+
+
+<!-- HEADER -->
+
+<header class="header">
+
+<div class="logo">
+SUIYAN PAPA TOOL
+</div>
+
+<div class="subtitle">
+◈ ELITE AUTOMATION CONTROL SYSTEM ◈
+</div>
+
+<div class="status">
+<span class="status-dot"></span>
+SYSTEM ONLINE // NODE SECURE
+</div>
+
+</header>
+
+
+<!-- CONTENT -->
+
+<div class="grid">
+
+
+<!-- AUTH PANEL -->
+
+<aside class="panel">
+
+<div class="title">
+AUTHENTICATION
+</div>
+
+
+<label>
+PHONE NUMBER
+</label>
+
+<input
+id="phone"
+placeholder="9198xxxxxxxx"
+>
+
+
+<button onclick="login()">
+[ INITIALIZE SESSION ]
+</button>
+
+
+<label>
+SESSION ID
+</label>
+
+<input
+id="session"
+placeholder="session_xxxxx"
+readonly
+>
+
+
+<br><br>
+
+<div class="muted">
+
+NODE STATUS
+
+<br>
+
+<span style="
+color:#00ff66;
+text-shadow:0 0 8px #00ff66;
+">
+● ONLINE
+</span>
+
+<br><br>
+
+ENGINE
+
+<br>
+
+<span style="
+color:#00eaff;
+text-shadow:0 0 8px #00eaff;
+">
+BAILEYS / NODE.JS
+</span>
+
+<br><br>
+
+OWNER
+
+<br>
+
+<span style="
+color:#ff00d4;
+text-shadow:0 0 8px #ff00d4;
+">
+SUIYAN PAPA
+</span>
+
+</div>
+
+</aside>
+
+
+<!-- MAIN -->
+
+<main>
+
+
+<!-- CARDS -->
+
+<section class="cards">
+
+
+<div class="card">
+
+<div
+class="number"
+id="sessionCount">
+0
+</div>
+
+<div class="muted">
+ACTIVE SESSIONS
+</div>
+
+</div>
+
+
+<div class="card">
+
+<div
+class="number"
+id="sentCount">
+0
+</div>
+
+<div class="muted">
+MESSAGES LOGGED
+</div>
+
+</div>
+
+
+<div class="card">
+
+<div
+class="number">
+READY
+</div>
+
+<div class="muted">
+AUTOMATION ENGINE
+</div>
+
+</div>
+
+
+</section>
+
+
+
+<!-- AUTOMATION -->
+
+<section
+class="panel"
+style="margin-top:16px"
+>
+
+<div class="title">
+AUTOMATION QUEUE
+</div>
+
+
+<label>
+TARGET
+</label>
+
+<input
+id="target"
+placeholder="Target number or group JID"
+>
+
+
+<label>
+PREFIX
+</label>
+
+<input
+id="prefix"
+placeholder="Optional prefix"
+>
+
+
+<label>
+MESSAGES — ONE PER LINE
+</label>
+
+<textarea
+id="messages"
+placeholder="Enter message 01
+Enter message 02
+Enter message 03"
+></textarea>
+
+
+<label>
+DELAY / SPEED (SECONDS)
+</label>
+
+<input
+id="speed"
+type="number"
+min="1"
+value="10"
+>
+
+
+<div style="
+display:grid;
+grid-template-columns:1fr 1fr;
+gap:10px;
+">
+
+<button onclick="startAutomation()">
+[ START QUEUE ]
+</button>
+
+<button
+class="danger"
+onclick="stopAutomation()"
+>
+[ STOP QUEUE ]
+</button>
+
+</div>
+
+</section>
+
+
+
+<!-- TERMINAL -->
+
+<section class="terminal">
+
+<div class="title">
+SYSTEM TERMINAL
+</div>
+
+<div
+id="logs"
+class="logs"
+>
+
+<div>
+<b>[BOOT]</b>
+SUIYAN PAPA TOOL initialized...
+</div>
+
+<div>
+<b>[SYSTEM]</b>
+Neon control interface loaded.
+</div>
+
+<div>
+<b>[SECURITY]</b>
+Waiting for operator authentication...
+<span class="cursor"></span>
+</div>
+
+</div>
+
+</section>
+
+
+</main>
+
+</div>
+
+</div>
+
+
+<script>
+
+
+const $ =
+id => document.getElementById(id);
+
+
+function log(text){
+
+  const logs =
+    $("logs");
+
+  logs.insertAdjacentHTML(
+    "beforeend",
+
+    `<div>
+      <b>[${new Date().toLocaleTimeString()}]</b>
+      ${text}
+    </div>`
+  );
+
+  logs.scrollTop =
+    logs.scrollHeight;
+}
+
+
+
+async function login(){
+
+  const phone =
+    $("phone").value.trim();
+
+
+  if(!phone){
+
+    log(
+      "ERROR: PHONE NUMBER REQUIRED."
+    );
+
+    return;
+  }
+
+
+  try{
+
+    const response =
+      await fetch(
+        "/api/login",
+        {
+          method:"POST",
+
+          headers:{
+            "Content-Type":
+            "application/json"
+          },
+
+          body:
+          JSON.stringify({
+            phone:phone
+          })
+        }
+      );
+
+
+    const data =
+      await response.json();
+
+
+    $("session").value =
+      data.sessionId || "";
+
+
+    if(data.success){
+
+      log(
+        "SESSION INITIALIZED :: "
+        + data.sessionId
+      );
+
+    }else{
+
+      log(
+        "ERROR :: "
+        + (data.error ||
+        "LOGIN FAILED")
+      );
+
+    }
+
+
+    loadSessions();
+
+  }
+
+  catch(error){
+
+    log(
+      "SERVER ERROR :: "
+      + error.message
+    );
+
+  }
+
+}
+
+
+
+async function startAutomation(){
+
+  const sessionId =
+    $("session").value.trim();
+
+  const target =
+    $("target").value.trim();
+
+  const messages =
+    $("messages")
+    .value
+    .split("\n")
+    .map(x=>x.trim())
+    .filter(Boolean);
+
+  const prefix =
+    $("prefix").value;
+
+  const speed =
+    Number(
+      $("speed").value
+    ) || 10;
+
+
+  if(
+    !sessionId ||
+    !target ||
+    !messages.length
+  ){
+
+    log(
+      "ERROR :: SESSION / TARGET / MESSAGE REQUIRED."
+    );
+
+    return;
+  }
+
+
+  try{
+
+    const response =
+      await fetch(
+        "/api/start-automation",
+        {
+          method:"POST",
+
+          headers:{
+            "Content-Type":
+            "application/json"
+          },
+
+          body:
+          JSON.stringify({
+            sessionId,
+            target,
+            messages,
+            prefix,
+            speed
+          })
+        }
+      );
+
+
+    const data =
+      await response.json();
+
+
+    if(data.success){
+
+      log(
+        "QUEUE STARTED :: "
+        + data.queued
+        + " MESSAGE(S)"
+      );
+
+    }
+
+    else{
+
+      log(
+        "ERROR :: "
+        + data.error
+      );
+
+    }
+
+  }
+
+  catch(error){
+
+    log(
+      "SERVER ERROR :: "
+      + error.message
+    );
+
+  }
+
+}
+
+
+
+async function stopAutomation(){
+
+  const sessionId =
+    $("session").value.trim();
+
+
+  if(!sessionId){
+
+    log(
+      "ERROR :: NO ACTIVE SESSION."
+    );
+
+    return;
+  }
+
+
+  try{
+
+    const response =
+      await fetch(
+        "/api/stop-automation",
+        {
+          method:"POST",
+
+          headers:{
+            "Content-Type":
+            "application/json"
+          },
+
+          body:
+          JSON.stringify({
+            sessionId
+          })
+        }
+      );
+
+
+    const data =
+      await response.json();
+
+
+    if(data.success){
+
+      log(
+        "QUEUE STOPPED :: ALL AUTOMATION HALTED."
+      );
+
+    }
+
+    else{
+
+      log(
+        "ERROR :: "
+        + data.error
+      );
+
+    }
+
+  }
+
+  catch(error){
+
+    log(
+      "SERVER ERROR :: "
+      + error.message
+    );
+
+  }
+
+}
+
+
+
+async function loadSessions(){
+
+  try{
+
+    const response =
+      await fetch(
+        "/api/sessions"
+      );
+
+    const data =
+      await response.json();
+
+
+    $("sessionCount")
+      .textContent =
+      (data.sessions || [])
+      .length;
+
+  }
+
+  catch(error){
+
+    // server unavailable
+  }
+
+}
+
+
+loadSessions();
+
+setInterval(
+  loadSessions,
+  10000
+);
+
+</script>
+
+</body>
+</html>
