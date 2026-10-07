@@ -1,13 +1,18 @@
 <!doctype html>
 <html lang="en">
- <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width,initial-scale=1.0">
-  <title>SUIYAN PAPA TOOL</title>
-  <style>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>SUIYAN PAPA TOOL</title>
+
+<style>
 @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700;800;900&family=Share+Tech+Mono&display=swap');
 
-*{box-sizing:border-box;margin:0;padding:0}
+*{
+ box-sizing:border-box;
+ margin:0;
+ padding:0
+}
 
 :root{
  --cyan:#00f6ff;
@@ -19,7 +24,9 @@
  --bg:#020207;
 }
 
-html{scroll-behavior:smooth}
+html{
+ scroll-behavior:smooth
+}
 
 body{
  min-height:100vh;
@@ -81,9 +88,17 @@ body:after{
 .p6{left:35%;top:90%;animation-delay:5s}
 
 @keyframes float{
- 0%{transform:translateY(0);opacity:0}
- 20%{opacity:.8}
- 100%{transform:translateY(-100vh);opacity:0}
+ 0%{
+  transform:translateY(0);
+  opacity:0
+ }
+ 20%{
+  opacity:.8
+ }
+ 100%{
+  transform:translateY(-100vh);
+  opacity:0
+ }
 }
 
 .container{
@@ -116,7 +131,9 @@ body:after{
 }
 
 @keyframes blink{
- 50%{opacity:.2}
+ 50%{
+  opacity:.2
+ }
 }
 
 .logo-wrap{
@@ -180,16 +197,30 @@ body:after{
 }
 
 @keyframes glitch1{
- 0%,90%,100%{transform:translate(3px,-2px)}
- 92%{transform:translate(-8px,2px)}
- 94%{transform:translate(6px,-1px)}
- 96%{transform:translate(-2px,3px)}
+ 0%,90%,100%{
+  transform:translate(3px,-2px)
+ }
+ 92%{
+  transform:translate(-8px,2px)
+ }
+ 94%{
+  transform:translate(6px,-1px)
+ }
+ 96%{
+  transform:translate(-2px,3px)
+ }
 }
 
 @keyframes glitch2{
- 0%,88%,100%{transform:translate(-3px,2px)}
- 90%{transform:translate(8px,-2px)}
- 93%{transform:translate(-5px,1px)}
+ 0%,88%,100%{
+  transform:translate(-3px,2px)
+ }
+ 90%{
+  transform:translate(8px,-2px)
+ }
+ 93%{
+  transform:translate(-5px,1px)
+ }
 }
 
 .subtitle{
@@ -214,7 +245,12 @@ body:after{
 .system-line span{
  height:1px;
  flex:1;
- background:linear-gradient(90deg,transparent,var(--cyan),transparent);
+ background:linear-gradient(
+  90deg,
+  transparent,
+  var(--cyan),
+  transparent
+ );
 }
 
 .system-line b{
@@ -281,8 +317,12 @@ body:after{
 }
 
 @keyframes sweep{
- 0%{left:-100%}
- 30%,100%{left:150%}
+ 0%{
+  left:-100%
+ }
+ 30%,100%{
+  left:150%
+ }
 }
 
 .panel:hover{
@@ -299,10 +339,29 @@ body:after{
  border-style:solid;
 }
 
-.c1{top:0;left:0;border-width:2px 0 0 2px}
-.c2{top:0;right:0;border-width:2px 2px 0 0}
-.c3{bottom:0;left:0;border-width:0 0 2px 2px}
-.c4{bottom:0;right:0;border-width:0 2px 2px 0}
+.c1{
+ top:0;
+ left:0;
+ border-width:2px 0 0 2px
+}
+
+.c2{
+ top:0;
+ right:0;
+ border-width:2px 2px 0 0
+}
+
+.c3{
+ bottom:0;
+ left:0;
+ border-width:0 0 2px 2px
+}
+
+.c4{
+ bottom:0;
+ right:0;
+ border-width:0 2px 2px 0
+}
 
 .panel-title{
  display:flex;
@@ -342,7 +401,9 @@ body:after{
  letter-spacing:1px;
 }
 
-input,textarea{
+input,
+textarea,
+select{
  width:100%;
  border:1px solid #172936;
  outline:none;
@@ -354,13 +415,24 @@ input,textarea{
  transition:.25s;
 }
 
+select{
+ cursor:pointer;
+ appearance:auto;
+}
+
+select option{
+ background:#020207;
+ color:#fff;
+}
+
 input::placeholder,
 textarea::placeholder{
  color:#39414a;
 }
 
 input:focus,
-textarea:focus{
+textarea:focus,
+select:focus{
  border-color:var(--cyan);
  box-shadow:
  0 0 0 1px rgba(0,246,255,.1),
@@ -427,6 +499,16 @@ textarea{
  box-shadow:
  0 0 15px var(--pink),
  0 0 40px rgba(255,0,140,.4);
+}
+
+#groupTargetWrap{
+ display:none;
+}
+
+.group-refresh{
+ margin-top:8px;
+ padding:10px;
+ font-size:9px;
 }
 
 #pairBox{
@@ -556,8 +638,15 @@ textarea{
  color:#555;
 }
 
-.good{color:var(--green)!important;text-shadow:0 0 8px var(--green)}
-.warn{color:#ffe600!important;text-shadow:0 0 8px #ffe600}
+.good{
+ color:var(--green)!important;
+ text-shadow:0 0 8px var(--green)
+}
+
+.warn{
+ color:#ffe600!important;
+ text-shadow:0 0 8px #ffe600
+}
 
 .terminal{
  grid-column:1/-1;
@@ -584,9 +673,20 @@ textarea{
  border-radius:50%;
 }
 
-.t-red{background:#ff1744;box-shadow:0 0 8px #ff1744}
-.t-yellow{background:#ffe600;box-shadow:0 0 8px #ffe600}
-.t-green{background:#00ff88;box-shadow:0 0 8px #00ff88}
+.t-red{
+ background:#ff1744;
+ box-shadow:0 0 8px #ff1744
+}
+
+.t-yellow{
+ background:#ffe600;
+ box-shadow:0 0 8px #ffe600
+}
+
+.t-green{
+ background:#00ff88;
+ box-shadow:0 0 8px #00ff88
+}
 
 .terminal-title{
  margin-left:8px;
@@ -611,10 +711,21 @@ textarea{
  background:var(--cyan);
 }
 
-.log-green{color:var(--green)}
-.log-cyan{color:var(--cyan)}
-.log-red{color:var(--red)}
-.log-yellow{color:#ffe600}
+.log-green{
+ color:var(--green)
+}
+
+.log-cyan{
+ color:var(--cyan)
+}
+
+.log-red{
+ color:var(--red)
+}
+
+.log-yellow{
+ color:#ffe600
+}
 
 .footer{
  text-align:center;
@@ -629,192 +740,760 @@ textarea{
 }
 
 @media(max-width:700px){
+
  .container{
   width:92%;
   padding-top:20px;
  }
+
  .topbar{
   font-size:8px;
  }
+
  .grid{
   grid-template-columns:1fr;
  }
+
  .terminal{
   grid-column:auto;
  }
+
  .logo{
   letter-spacing:2px;
  }
+
  .subtitle{
   letter-spacing:2px;
   font-size:8px;
  }
+
  .stats{
   grid-template-columns:repeat(3,1fr);
  }
+
  #pairingCode{
   font-size:23px;
   letter-spacing:5px;
  }
 }
 </style>
- </head>
- <body>
-  <div class="particle p1"></div>
-  <div class="particle p2"></div>
-  <div class="particle p3"></div>
-  <div class="particle p4"></div>
-  <div class="particle p5"></div>
-  <div class="particle p6"></div>
-  <div class="container">
-   <div class="topbar">
-    <span>SYS://SUIYAN_NODE_01</span> <span class="online">SYSTEM ONLINE</span>
-   </div>
-   <div class="logo-wrap">
-    <div class="logo">SUIYAN PAPA TOOL</div>
-   </div>
-   <div class="subtitle">◈ ELITE WHATSAPP CONTROL SYSTEM ◈</div>
-   <div class="system-line">
-    <span></span> <b>SECURE // ENCRYPTED // ACTIVE</b> <span></span>
-   </div>
-   <div class="grid">
-    <!-- AUTH -->
-    <div class="panel">
-     <i class="corner c1"></i> <i class="corner c2"></i> <i class="corner c3"></i> <i class="corner c4"></i>
-     <div class="panel-title">
-      <span class="icon">◈</span> WHATSAPP AUTH <span class="tag">NODE 01</span>
-     </div>
-     <div class="input-wrap">
-      <label>PHONE NUMBER</label> <input id="phone" type="text" placeholder="919XXXXXXXXX" autocomplete="off">
-     </div>
-     <button class="btn" onclick="login()">[ INITIALIZE SESSION ]</button>
-     <div class="input-wrap" style="margin-top:15px">
-      <label>SESSION IDENTIFIER</label> <input id="session" type="text" placeholder="WAITING FOR SESSION..." readonly>
-     </div>
-     <div id="pairBox">
-      <div class="pair-title">WHATSAPP PAIRING CODE</div>
-      <div id="pairingCode">WAITING...</div>
-      <div class="pair-help">
-       WHATSAPP → SETTINGS → LINKED DEVICES
-       <br>
-       → LINK A DEVICE → LINK WITH PHONE NUMBER
-      </div>
-     </div>
-     <div class="status-box">
-      <span class="status-dot"></span> <span id="connectionStatus"> NODE STATUS: WAITING </span>
-     </div>
-     <div class="owner">
-      SYSTEM OWNER // <strong>SUIYAN PAPA</strong>
-     </div>
-    </div>
-    <!-- MONITOR -->
-    <div class="panel">
-     <i class="corner c1"></i> <i class="corner c2"></i> <i class="corner c3"></i> <i class="corner c4"></i>
-     <div class="panel-title">
-      <span class="icon">◉</span> SYSTEM MONITOR <span class="tag">LIVE</span>
-     </div>
-     <div class="stats">
-      <div class="stat">
-       <div class="stat-number" id="activeSessions">0</div>
-       <div class="stat-label">SESSIONS</div>
-      </div>
-      <div class="stat">
-       <div class="stat-number" id="messagesSent">0</div>
-       <div class="stat-label">SENT</div>
-      </div>
-      <div class="stat">
-       <div class="stat-number" id="engineStatus">OFF</div>
-       <div class="stat-label">ENGINE</div>
-      </div>
-     </div>
-     <div class="monitor">
-      <div class="monitor-row">
-       <span>CORE STATUS</span> <span class="good">ONLINE</span>
-      </div>
-      <div class="monitor-row">
-       <span>NETWORK</span> <span class="good">SECURE</span>
-      </div>
-      <div class="monitor-row">
-       <span>ENCRYPTION</span> <span class="good">ACTIVE</span>
-      </div>
-      <div class="monitor-row">
-       <span>AUTOMATION</span> <span id="engineText" class="warn">STANDBY</span>
-      </div>
-      <div class="monitor-row">
-       <span>NODE</span> <span style="color:var(--cyan)">SUIYAN-01</span>
-      </div>
-     </div>
-    </div>
-    <!-- AUTOMATION -->
-    <div class="panel">
-     <i class="corner c1"></i> <i class="corner c2"></i> <i class="corner c3"></i> <i class="corner c4"></i>
-     <div class="panel-title">
-      <span class="icon">◆</span> AUTOMATION QUEUE <span class="tag">CONTROL</span>
-     </div>
-     <div class="input-wrap">
-      <label>TARGET NUMBER</label> <input id="target" type="text" placeholder="919XXXXXXXXX">
-     </div>
-     <div class="input-wrap">
-      <label>MESSAGE PREFIX</label> <input id="prefix" type="text" placeholder="OPTIONAL PREFIX">
-     </div>
-     <div class="input-wrap">
-      <label>MESSAGE DATA // ONE PER LINE</label> <textarea id="messages" placeholder="ENTER MESSAGE HERE...
+</head>
+
+<body>
+
+<div class="particle p1"></div>
+<div class="particle p2"></div>
+<div class="particle p3"></div>
+<div class="particle p4"></div>
+<div class="particle p5"></div>
+<div class="particle p6"></div>
+
+<div class="container">
+
+<div class="topbar">
+<span>SYS://SUIYAN_NODE_01</span>
+<span class="online">SYSTEM ONLINE</span>
+</div>
+
+<div class="logo-wrap">
+<div class="logo">SUIYAN PAPA TOOL</div>
+</div>
+
+<div class="subtitle">
+◈ ELITE WHATSAPP CONTROL SYSTEM ◈
+</div>
+
+<div class="system-line">
+<span></span>
+<b>SECURE // ENCRYPTED // ACTIVE</b>
+<span></span>
+</div>
+
+<div class="grid">
+
+<!-- AUTH -->
+
+<div class="panel">
+
+<i class="corner c1"></i>
+<i class="corner c2"></i>
+<i class="corner c3"></i>
+<i class="corner c4"></i>
+
+<div class="panel-title">
+<span class="icon">◈</span>
+WHATSAPP AUTH
+<span class="tag">NODE 01</span>
+</div>
+
+<div class="input-wrap">
+
+<label>PHONE NUMBER</label>
+
+<input
+id="phone"
+type="text"
+placeholder="919XXXXXXXXX"
+autocomplete="off"
+>
+
+</div>
+
+<button class="btn" onclick="login()">
+[ INITIALIZE SESSION ]
+</button>
+
+<div
+class="input-wrap"
+style="margin-top:15px"
+>
+
+<label>SESSION IDENTIFIER</label>
+
+<input
+id="session"
+type="text"
+placeholder="WAITING FOR SESSION..."
+readonly
+>
+
+</div>
+
+<div id="pairBox">
+
+<div class="pair-title">
+WHATSAPP PAIRING CODE
+</div>
+
+<div id="pairingCode">
+WAITING...
+</div>
+
+<div class="pair-help">
+
+WHATSAPP → SETTINGS → LINKED DEVICES
+
+<br>
+
+→ LINK A DEVICE → LINK WITH PHONE NUMBER
+
+</div>
+
+</div>
+
+<div class="status-box">
+
+<span class="status-dot"></span>
+
+<span id="connectionStatus">
+NODE STATUS: WAITING
+</span>
+
+</div>
+
+<div class="owner">
+
+SYSTEM OWNER //
+
+<strong>SUIYAN PAPA</strong>
+
+</div>
+
+</div>
+
+
+<!-- MONITOR -->
+
+<div class="panel">
+
+<i class="corner c1"></i>
+<i class="corner c2"></i>
+<i class="corner c3"></i>
+<i class="corner c4"></i>
+
+<div class="panel-title">
+
+<span class="icon">◉</span>
+
+SYSTEM MONITOR
+
+<span class="tag">LIVE</span>
+
+</div>
+
+<div class="stats">
+
+<div class="stat">
+
+<div
+class="stat-number"
+id="activeSessions"
+>
+0
+</div>
+
+<div class="stat-label">
+SESSIONS
+</div>
+
+</div>
+
+
+<div class="stat">
+
+<div
+class="stat-number"
+id="messagesSent"
+>
+0
+</div>
+
+<div class="stat-label">
+SENT
+</div>
+
+</div>
+
+
+<div class="stat">
+
+<div
+class="stat-number"
+id="engineStatus"
+>
+OFF
+</div>
+
+<div class="stat-label">
+ENGINE
+</div>
+
+</div>
+
+</div>
+
+
+<div class="monitor">
+
+<div class="monitor-row">
+
+<span>CORE STATUS</span>
+
+<span class="good">
+ONLINE
+</span>
+
+</div>
+
+
+<div class="monitor-row">
+
+<span>NETWORK</span>
+
+<span class="good">
+SECURE
+</span>
+
+</div>
+
+
+<div class="monitor-row">
+
+<span>ENCRYPTION</span>
+
+<span class="good">
+ACTIVE
+</span>
+
+</div>
+
+
+<div class="monitor-row">
+
+<span>AUTOMATION</span>
+
+<span
+id="engineText"
+class="warn"
+>
+STANDBY
+</span>
+
+</div>
+
+
+<div class="monitor-row">
+
+<span>NODE</span>
+
+<span style="color:var(--cyan)">
+SUIYAN-01
+</span>
+
+</div>
+
+</div>
+
+</div>
+
+
+<!-- AUTOMATION -->
+
+<div class="panel">
+
+<i class="corner c1"></i>
+<i class="corner c2"></i>
+<i class="corner c3"></i>
+<i class="corner c4"></i>
+
+<div class="panel-title">
+
+<span class="icon">◆</span>
+
+AUTOMATION QUEUE
+
+<span class="tag">
+CONTROL
+</span>
+
+</div>
+
+
+<!-- TARGET TYPE -->
+
+<div class="input-wrap">
+
+<label>TARGET TYPE</label>
+
+<select
+id="targetType"
+onchange="toggleTargetType()"
+>
+
+<option value="number">
+NUMBER
+</option>
+
+<option value="group">
+GROUP
+</option>
+
+</select>
+
+</div>
+
+
+<!-- NUMBER TARGET -->
+
+<div
+class="input-wrap"
+id="numberTargetWrap"
+>
+
+<label>TARGET NUMBER</label>
+
+<input
+id="target"
+type="text"
+placeholder="919XXXXXXXXX"
+>
+
+</div>
+
+
+<!-- GROUP TARGET -->
+
+<div
+class="input-wrap"
+id="groupTargetWrap"
+>
+
+<label>TARGET GROUP</label>
+
+<select id="groupTarget">
+
+<option value="">
+LOGIN FIRST
+</option>
+
+</select>
+
+<button
+type="button"
+class="btn group-refresh"
+onclick="loadGroups()"
+>
+[ REFRESH GROUPS ]
+</button>
+
+</div>
+
+
+<div class="input-wrap">
+
+<label>MESSAGE PREFIX</label>
+
+<input
+id="prefix"
+type="text"
+placeholder="OPTIONAL PREFIX"
+>
+
+</div>
+
+
+<div class="input-wrap">
+
+<label>
+MESSAGE DATA // ONE PER LINE
+</label>
+
+<textarea
+id="messages"
+placeholder="ENTER MESSAGE HERE...
 MESSAGE 01
-MESSAGE 02"></textarea>
-     </div>
-     <!-- TXT FILE UPLOAD -->
-     <div class="input-wrap">
-      <label>LOAD MESSAGE FILE // TXT</label> <input id="messageFile" type="file" accept=".txt" onchange="loadMessageFile(this)">
-     </div>
-     <div class="input-wrap">
-      <label>DELAY / SPEED</label> <input id="speed" type="number" value="5" min="1">
-     </div>
-     <button class="btn" onclick="startAutomation()">[ START AUTOMATION ]</button>
-     <div class="input-wrap" style="margin-top:15px">
-      <label>STOP SESSION ID / UNIQUE KEY</label> <input id="stopSession" type="text" placeholder="PASTE SESSION ID / UNIQUE KEY" autocomplete="off">
-     </div>
-     <button class="btn stop" onclick="stopAutomation()">[ STOP AUTOMATION ]</button>
-    </div>
-    <!-- TERMINAL -->
-    <div class="terminal">
-     <div class="terminal-head">
-      <span class="t-red"></span> <span class="t-yellow"></span> <span class="t-green"></span> <span class="terminal-title"> SUIYAN // LIVE SYSTEM TERMINAL </span>
-     </div>
-     <div id="terminal">
-      <div class="log-green">&gt; SUIYAN PAPA TOOL INITIALIZED</div>
-      <div class="log-cyan">&gt; CYBERPUNK INTERFACE LOADED</div>
-      <div class="log-green">&gt; SYSTEM ONLINE</div>
-      <div class="log-yellow">&gt; WAITING FOR WHATSAPP SESSION...</div>
-     </div>
-    </div>
-   </div>
-   <div class="footer">
-    SUIYAN PAPA TOOL // <b>PRIVATE CONTROL NODE</b> // SYSTEM READY
-   </div>
-  </div>
-  <script>
+MESSAGE 02"
+></textarea>
+
+</div>
+
+
+<!-- TXT FILE UPLOAD -->
+
+<div class="input-wrap">
+
+<label>
+LOAD MESSAGE FILE // TXT
+</label>
+
+<input
+id="messageFile"
+type="file"
+accept=".txt"
+onchange="loadMessageFile(this)"
+>
+
+</div>
+
+
+<div class="input-wrap">
+
+<label>
+DELAY / SPEED
+</label>
+
+<input
+id="speed"
+type="number"
+value="5"
+min="1"
+>
+
+</div>
+
+
+<button
+class="btn"
+onclick="startAutomation()"
+>
+[ START AUTOMATION ]
+</button>
+
+
+<div
+class="input-wrap"
+style="margin-top:15px"
+>
+
+<label>
+STOP SESSION ID / UNIQUE KEY
+</label>
+
+<input
+id="stopSession"
+type="text"
+placeholder="PASTE SESSION ID / UNIQUE KEY"
+autocomplete="off"
+>
+
+</div>
+
+
+<button
+class="btn stop"
+onclick="stopAutomation()"
+>
+[ STOP AUTOMATION ]
+</button>
+
+</div>
+
+
+<!-- TERMINAL -->
+
+<div class="terminal">
+
+<div class="terminal-head">
+
+<span class="t-red"></span>
+<span class="t-yellow"></span>
+<span class="t-green"></span>
+
+<span class="terminal-title">
+SUIYAN // LIVE SYSTEM TERMINAL
+</span>
+
+</div>
+
+<div id="terminal">
+
+<div class="log-green">
+&gt; SUIYAN PAPA TOOL INITIALIZED
+</div>
+
+<div class="log-cyan">
+&gt; CYBERPUNK INTERFACE LOADED
+</div>
+
+<div class="log-green">
+&gt; SYSTEM ONLINE
+</div>
+
+<div class="log-yellow">
+&gt; WAITING FOR WHATSAPP SESSION...
+</div>
+
+</div>
+
+</div>
+
+</div>
+
+<div class="footer">
+
+SUIYAN PAPA TOOL //
+<b>PRIVATE CONTROL NODE</b> //
+SYSTEM READY
+
+</div>
+
+</div>
+
+<script>
 
 let currentSession = '';
+
 let pairingTimer = null;
+
 let statsTimer = null;
+
 let connectedLogged = false;
 
 
 /* TERMINAL */
 
-function terminal(message,type='green'){
+function terminal(
+ message,
+ type='green'
+){
 
- const box=document.getElementById('terminal');
+ const box =
+ document.getElementById(
+  'terminal'
+ );
 
- const line=document.createElement('div');
+ const line =
+ document.createElement(
+  'div'
+ );
 
- line.className='log-'+type;
+ line.className =
+  'log-' + type;
 
- line.innerText='> '+message;
+ line.innerText =
+  '> ' + message;
 
  box.appendChild(line);
 
- box.scrollTop=box.scrollHeight;
+ box.scrollTop =
+  box.scrollHeight;
+
+}
+
+
+/* TARGET TYPE */
+
+function toggleTargetType(){
+
+ const type =
+  document.getElementById(
+   'targetType'
+  ).value;
+
+ const numberWrap =
+  document.getElementById(
+   'numberTargetWrap'
+  );
+
+ const groupWrap =
+  document.getElementById(
+   'groupTargetWrap'
+  );
+
+
+ if(type === 'group'){
+
+  numberWrap.style.display =
+   'none';
+
+  groupWrap.style.display =
+   'block';
+
+  loadGroups();
+
+ }else{
+
+  numberWrap.style.display =
+   'block';
+
+  groupWrap.style.display =
+   'none';
+
+ }
+
+}
+
+
+/* LOAD GROUPS */
+
+async function loadGroups(){
+
+ if(!currentSession){
+
+  alert(
+   'Initialize WhatsApp session first'
+  );
+
+  return;
+
+ }
+
+
+ const select =
+  document.getElementById(
+   'groupTarget'
+  );
+
+
+ select.innerHTML =
+  '<option value="">LOADING GROUPS...</option>';
+
+
+ terminal(
+  'Loading WhatsApp groups...',
+  'cyan'
+ );
+
+
+ try{
+
+  const response =
+   await fetch(
+    '/api/groups/' +
+    encodeURIComponent(
+     currentSession
+    )
+   );
+
+
+  const data =
+   await response.json();
+
+
+  if(!data.success){
+
+   throw new Error(
+    data.message ||
+    'Unable to load groups'
+   );
+
+  }
+
+
+  const groups =
+   data.groups || [];
+
+
+  if(groups.length === 0){
+
+   select.innerHTML =
+    '<option value="">NO GROUPS FOUND</option>';
+
+   terminal(
+    'No WhatsApp groups found.',
+    'yellow'
+   );
+
+   return;
+
+  }
+
+
+  select.innerHTML =
+   '<option value="">SELECT GROUP</option>';
+
+
+  groups.forEach(
+   group => {
+
+    const option =
+     document.createElement(
+      'option'
+     );
+
+    option.value =
+     group.id;
+
+    option.textContent =
+     group.subject;
+
+    select.appendChild(
+     option
+    );
+
+   }
+  );
+
+
+  terminal(
+   'Groups loaded: ' +
+   groups.length,
+   'green'
+  );
+
+
+ }catch(error){
+
+  console.error(error);
+
+
+  select.innerHTML =
+   '<option value="">FAILED TO LOAD GROUPS</option>';
+
+
+  terminal(
+   'Group loading failed: ' +
+   error.message,
+   'red'
+  );
+
+
+  alert(
+   error.message
+  );
+
+ }
+
 }
 
 
@@ -822,58 +1501,102 @@ function terminal(message,type='green'){
 
 function loadMessageFile(input){
 
- if(!input.files || !input.files[0]){
+ if(
+  !input.files ||
+  !input.files[0]
+ ){
+
   return;
+
  }
 
- const file=input.files[0];
 
- if(!file.name.toLowerCase().endsWith('.txt')){
+ const file =
+  input.files[0];
 
-  alert('Please select a .txt file');
+
+ if(
+  !file.name
+   .toLowerCase()
+   .endsWith('.txt')
+ ){
+
+  alert(
+   'Please select a .txt file'
+  );
 
   input.value='';
 
   return;
+
  }
 
- const reader=new FileReader();
 
- reader.onload=function(event){
+ const reader =
+  new FileReader();
 
-  const text=event.target.result || '';
 
-  const messages=text
-   .split(/\r?\n/)
-   .map(x=>x.trim())
-   .filter(x=>x.length>0);
+ reader.onload =
+  function(event){
 
-  document
-   .getElementById('messages')
-   .value=messages.join('\n');
+   const text =
+    event.target.result ||
+    '';
 
-  terminal(
-   'Message file loaded: '+file.name,
-   'green'
-  );
 
-  terminal(
-   'Messages loaded: '+messages.length,
-   'cyan'
-  );
- };
+   const messages =
+    text
+     .split(/\r?\n/)
+     .map(
+      x => x.trim()
+     )
+     .filter(
+      x => x.length > 0
+     );
 
- reader.onerror=function(){
 
-  alert('Unable to read message file');
+   document
+    .getElementById(
+     'messages'
+    )
+    .value =
+     messages.join('\n');
 
-  terminal(
-   'Message file read failed.',
-   'red'
-  );
- };
+
+   terminal(
+    'Message file loaded: ' +
+    file.name,
+    'green'
+   );
+
+
+   terminal(
+    'Messages loaded: ' +
+    messages.length,
+    'cyan'
+   );
+
+  };
+
+
+ reader.onerror =
+  function(){
+
+   alert(
+    'Unable to read message file'
+   );
+
+
+   terminal(
+    'Message file read failed.',
+    'red'
+   );
+
+  };
+
 
  reader.readAsText(file);
+
 }
 
 
@@ -881,188 +1604,345 @@ function loadMessageFile(input){
 
 async function login(){
 
- const phone=document
-  .getElementById('phone')
-  .value
-  .trim();
+ const phone =
+  document
+   .getElementById('phone')
+   .value
+   .trim();
+
 
  if(!phone){
 
-  alert('Enter WhatsApp phone number');
+  alert(
+   'Enter WhatsApp phone number'
+  );
 
   return;
+
  }
+
 
  terminal(
   'Initializing secure WhatsApp node...',
   'cyan'
  );
 
+
  document
-  .getElementById('connectionStatus')
-  .innerText='NODE STATUS: CONNECTING...';
+  .getElementById(
+   'connectionStatus'
+  )
+  .innerText =
+   'NODE STATUS: CONNECTING...';
+
 
  try{
 
-  const response=await fetch(
-   '/api/login',
-   {
-    method:'POST',
-    headers:{
-     'Content-Type':'application/json'
-    },
-    body:JSON.stringify({
-     phone:phone
-    })
-   }
-  );
+  const response =
+   await fetch(
+    '/api/login',
+    {
+     method:'POST',
 
-  const data=await response.json();
+     headers:{
+      'Content-Type':
+       'application/json'
+     },
+
+     body:JSON.stringify({
+      phone:phone
+     })
+    }
+   );
+
+
+  const data =
+   await response.json();
+
 
   if(!data.success){
 
    terminal(
-    data.message || 'Session initialization failed',
+    data.message ||
+    'Session initialization failed',
     'red'
    );
 
+
    alert(
-    data.message || 'Login failed'
+    data.message ||
+    'Login failed'
    );
 
+
    return;
+
   }
 
-  currentSession=data.sessionId;
+
+  currentSession =
+   data.sessionId;
+
 
   document
-   .getElementById('session')
-   .value=currentSession;
+   .getElementById(
+    'session'
+   )
+   .value =
+    currentSession;
+
 
   document
-   .getElementById('pairBox')
-   .style.display='block';
+   .getElementById(
+    'pairBox'
+   )
+   .style.display =
+    'block';
+
 
   document
-   .getElementById('pairingCode')
-   .innerText='GENERATING...';
+   .getElementById(
+    'pairingCode'
+   )
+   .innerText =
+    'GENERATING...';
+
 
   terminal(
-   'Session created: '+currentSession,
+   'Session created: ' +
+   currentSession,
    'green'
   );
+
 
   terminal(
    'Generating WhatsApp pairing code...',
    'yellow'
   );
 
-  checkPairingCode(currentSession);
+
+  checkPairingCode(
+   currentSession
+  );
+
 
   startStats();
+
 
  }catch(error){
 
   terminal(
-   'Connection error: '+error.message,
+   'Connection error: ' +
+   error.message,
    'red'
   );
+
  }
+
 }
 
 
 /* PAIRING */
 
-function checkPairingCode(sessionId){
+function checkPairingCode(
+ sessionId
+){
 
  if(pairingTimer){
-  clearInterval(pairingTimer);
+
+  clearInterval(
+   pairingTimer
+  );
+
  }
 
- pairingTimer=setInterval(async()=>{
 
-  try{
+ pairingTimer =
+  setInterval(
+   async()=>{
 
-   const response=await fetch(
-    '/api/pairing-code/'+sessionId
-   );
+    try{
 
-   const data=await response.json();
+     const response =
+      await fetch(
+       '/api/pairing-code/' +
+       sessionId
+      );
 
-   if(data.status==='ready'){
 
-    document
-     .getElementById('pairingCode')
-     .innerText=data.pairingCode;
+     const data =
+      await response.json();
 
-    document
-     .getElementById('connectionStatus')
-     .innerText=
-      'NODE STATUS: PAIRING CODE READY';
 
-    terminal(
-     'PAIRING CODE: '+data.pairingCode,
-     'cyan'
-    );
+     if(
+      data.status ===
+      'ready'
+     ){
 
-    terminal(
-     'Enter the code inside WhatsApp Linked Devices.',
-     'yellow'
-    );
+      document
+       .getElementById(
+        'pairingCode'
+       )
+       .innerText =
+        data.pairingCode;
 
-    clearInterval(pairingTimer);
-   }
 
-   if(data.status==='error'){
+      document
+       .getElementById(
+        'connectionStatus'
+       )
+       .innerText =
+        'NODE STATUS: PAIRING CODE READY';
 
-    document
-     .getElementById('pairingCode')
-     .innerText='ERROR';
 
-    terminal(
-     'Pairing error: '+data.message,
-     'red'
-    );
+      terminal(
+       'PAIRING CODE: ' +
+       data.pairingCode,
+       'cyan'
+      );
 
-    clearInterval(pairingTimer);
-   }
 
-  }catch(error){
+      terminal(
+       'Enter the code inside WhatsApp Linked Devices.',
+       'yellow'
+      );
 
-   console.log(error);
 
-  }
+      clearInterval(
+       pairingTimer
+      );
 
- },2000);
+     }
+
+
+     if(
+      data.status ===
+      'error'
+     ){
+
+      document
+       .getElementById(
+        'pairingCode'
+       )
+       .innerText =
+        'ERROR';
+
+
+      terminal(
+       'Pairing error: ' +
+       data.message,
+       'red'
+      );
+
+
+      clearInterval(
+       pairingTimer
+      );
+
+     }
+
+
+    }catch(error){
+
+     console.log(error);
+
+    }
+
+   },
+   2000
+  );
+
 }
-
-
-/* START */
+ /* START AUTOMATION */
 
 async function startAutomation(){
 
- const sessionId=document
-  .getElementById('session')
-  .value
-  .trim();
+ const sessionId =
+  document
+   .getElementById('session')
+   .value
+   .trim();
 
- const target=document
-  .getElementById('target')
-  .value
-  .trim();
 
- const prefix=document
-  .getElementById('prefix')
-  .value
-  .trim();
+ const targetType =
+  document
+   .getElementById('targetType')
+   .value;
 
- const rawMessages=document
-  .getElementById('messages')
-  .value;
 
- const speed=document
-  .getElementById('speed')
-  .value;
+ let target = '';
+
+
+ /*
+  * NUMBER TARGET
+  */
+
+ if(targetType === 'number'){
+
+  target =
+   document
+    .getElementById('target')
+    .value
+    .trim();
+
+
+  if(!target){
+
+   alert(
+    'Enter target number'
+   );
+
+   return;
+
+  }
+
+ }
+
+
+ /*
+  * GROUP TARGET
+  */
+
+ if(targetType === 'group'){
+
+  target =
+   document
+    .getElementById('groupTarget')
+    .value
+    .trim();
+
+
+  if(!target){
+
+   alert(
+    'Select a WhatsApp group'
+   );
+
+   return;
+
+  }
+
+ }
+
+
+ const prefix =
+  document
+   .getElementById('prefix')
+   .value
+   .trim();
+
+
+ const rawMessages =
+  document
+   .getElementById('messages')
+   .value;
+
+
+ const speed =
+  document
+   .getElementById('speed')
+   .value;
+
 
  if(!sessionId){
 
@@ -1071,262 +1951,459 @@ async function startAutomation(){
   );
 
   return;
+
  }
 
- if(!target){
 
-  alert(
-   'Enter target number'
-  );
+ const messages =
+  rawMessages
+   .split('\n')
+   .map(
+    x => x.trim()
+   )
+   .filter(
+    x => x.length > 0
+   );
 
-  return;
- }
 
- const messages=rawMessages
-  .split('\n')
-  .map(x=>x.trim())
-  .filter(x=>x.length>0);
-
- if(messages.length===0){
+ if(messages.length === 0){
 
   alert(
    'Enter at least one message'
   );
 
   return;
+
  }
+
 
  terminal(
   'Uploading automation queue...',
   'cyan'
  );
 
+
  try{
 
-  const response=await fetch(
-   '/api/start-automation',
-   {
-    method:'POST',
-    headers:{
-     'Content-Type':'application/json'
-    },
-    body:JSON.stringify({
-     sessionId:sessionId,
-     target:target,
-     prefix:prefix,
-     messages:messages,
-     speed:Number(speed)||5
-    })
-   }
-  );
+  const response =
+   await fetch(
+    '/api/start-automation',
+    {
+     method:'POST',
 
-  const data=await response.json();
+     headers:{
+      'Content-Type':
+       'application/json'
+     },
+
+     body:JSON.stringify({
+
+      sessionId:
+       sessionId,
+
+      target:
+       target,
+
+      prefix:
+       prefix,
+
+      messages:
+       messages,
+
+      speed:
+       Number(speed) || 5
+
+     })
+    }
+   );
+
+
+  const data =
+   await response.json();
+
 
   if(!data.success){
 
    terminal(
-    data.message || 'Queue failed',
+    data.message ||
+    'Queue failed',
     'red'
    );
 
    return;
+
   }
 
-  document
-   .getElementById('engineStatus')
-   .innerText='ON';
 
   document
-   .getElementById('engineText')
-   .innerText='ACTIVE';
+   .getElementById(
+    'engineStatus'
+   )
+   .innerText =
+    'ON';
+
 
   document
-   .getElementById('engineText')
-   .className='good';
+   .getElementById(
+    'engineText'
+   )
+   .innerText =
+    'ACTIVE';
+
+
+  document
+   .getElementById(
+    'engineText'
+   )
+   .className =
+    'good';
+
 
   terminal(
    data.message,
    'green'
   );
 
+
   terminal(
    'Automation engine active.',
    'green'
   );
 
+
  }catch(error){
 
   terminal(
-   'Automation error: '+error.message,
+   'Automation error: ' +
+   error.message,
    'red'
   );
+
  }
+
 }
 
 
-/* STOP */
+/* STOP AUTOMATION */
 
 async function stopAutomation(){
 
- const sessionId=document
-  .getElementById('stopSession')
-  .value
-  .trim();
+ const sessionId =
+  document
+   .getElementById(
+    'stopSession'
+   )
+   .value
+   .trim() ||
+  document
+   .getElementById(
+    'session'
+   )
+   .value
+   .trim();
+
 
  if(!sessionId){
-  alert('Enter Session ID / Unique Key to stop');
+
+  alert(
+   'Enter session ID'
+  );
+
   return;
+
  }
+
+
+ terminal(
+  'Stopping automation...',
+  'yellow'
+ );
+
 
  try{
 
-  const response=await fetch(
-   '/api/stop-automation',
-   {
-    method:'POST',
-    headers:{
-     'Content-Type':'application/json'
-    },
-    body:JSON.stringify({
-     sessionId:sessionId
-    })
-   }
-  );
+  const response =
+   await fetch(
+    '/api/stop-automation',
+    {
+     method:'POST',
 
-  const data=await response.json();
+     headers:{
+      'Content-Type':
+       'application/json'
+     },
+
+     body:JSON.stringify({
+      sessionId:
+       sessionId
+     })
+    }
+   );
+
+
+  const data =
+   await response.json();
+
 
   if(!data.success){
+
    terminal(
-    data.message || 'Unable to stop automation',
+    data.message ||
+    'Unable to stop automation',
     'red'
    );
-   alert(data.message || 'Unable to stop automation');
+
    return;
+
   }
 
-  document
-   .getElementById('engineStatus')
-   .innerText='OFF';
 
   document
-   .getElementById('engineText')
-   .innerText='STANDBY';
+   .getElementById(
+    'engineStatus'
+   )
+   .innerText =
+    'OFF';
+
 
   document
-   .getElementById('engineText')
-   .className='warn';
+   .getElementById(
+    'engineText'
+   )
+   .innerText =
+    'STANDBY';
+
+
+  document
+   .getElementById(
+    'engineText'
+   )
+   .className =
+    'warn';
+
 
   terminal(
-   'Automation stopped for session: '+sessionId,
-   'red'
+   data.message ||
+   'Automation stopped.',
+   'green'
   );
+
 
  }catch(error){
 
   terminal(
-   'Stop error: '+error.message,
+   'Stop error: ' +
+   error.message,
    'red'
   );
+
  }
+
 }
 
 
-/* STATS */
+/* LIVE STATS */
 
 function startStats(){
 
  if(statsTimer){
-  clearInterval(statsTimer);
+
+  clearInterval(
+   statsTimer
+  );
+
  }
+
 
  updateStats();
 
- statsTimer=setInterval(
-  updateStats,
-  5000
- );
+
+ statsTimer =
+  setInterval(
+   updateStats,
+   5000
+  );
+
 }
 
+
+/* UPDATE STATS */
 
 async function updateStats(){
 
  try{
 
-  const response=await fetch(
-   '/api/sessions'
+  const response =
+   await fetch(
+    '/api/sessions'
+   );
+
+
+  const data =
+   await response.json();
+
+
+  if(!data){
+
+   return;
+
+  }
+
+
+  /*
+   * SUPPORT BOTH:
+   * ARRAY RESPONSE
+   * OBJECT RESPONSE
+   */
+
+  let sessions = [];
+
+
+  if(
+   Array.isArray(data)
+  ){
+
+   sessions =
+    data;
+
+  }else if(
+   Array.isArray(
+    data.sessions
+   )
+  ){
+
+   sessions =
+    data.sessions;
+
+  }
+
+
+  document
+   .getElementById(
+    'activeSessions'
+   )
+   .innerText =
+    sessions.length;
+
+
+  /*
+   * SENT COUNT
+   */
+
+  let sent = 0;
+
+
+  sessions.forEach(
+   session => {
+
+    if(
+     typeof session.sent ===
+     'number'
+    ){
+
+     sent +=
+      session.sent;
+
+    }
+
+   }
   );
 
-  const data=await response.json();
-
-  if(!data.success)return;
-
-  const sessions=data.sessions||[];
-
-  let active=0;
-  let sent=0;
-
-  sessions.forEach(session=>{
-
-   if(Number(session.isConnected)===1){
-    active++;
-   }
-
-   sent+=Number(
-    session.sentCount||0
-   );
-  });
 
   document
-   .getElementById('activeSessions')
-   .innerText=active;
+   .getElementById(
+    'messagesSent'
+   )
+   .innerText =
+    sent;
 
-  document
-   .getElementById('messagesSent')
-   .innerText=sent;
+
+  /*
+   * CURRENT SESSION STATUS
+   */
 
   if(currentSession){
 
-   const current=sessions.find(
-    x=>x.id===currentSession
-   );
+   const current =
+    sessions.find(
+     session =>
+      session.sessionId ===
+      currentSession ||
+      session.id ===
+      currentSession
+    );
 
-   if(
-    current &&
-    Number(current.isConnected)===1
-   ){
 
-    document
-     .getElementById('connectionStatus')
-     .innerText=
-      'NODE STATUS: WHATSAPP CONNECTED';
+   if(current){
 
-    if(!connectedLogged){
+    const connected =
+     current.connected === true ||
+     current.status ===
+      'connected' ||
+     current.status ===
+      'open';
 
-     terminal(
-      'WHATSAPP NODE CONNECTED SUCCESSFULLY',
-      'green'
-     );
 
-     connectedLogged=true;
+    if(connected){
+
+     document
+      .getElementById(
+       'connectionStatus'
+      )
+      .innerText =
+       'NODE STATUS: CONNECTED';
+
+
+     if(!connectedLogged){
+
+      terminal(
+       'WhatsApp node connected successfully.',
+       'green'
+      );
+
+      connectedLogged = true;
+
+     }
+
     }
+
    }
+
   }
+
 
  }catch(error){
 
-  console.log(error);
+  console.log(
+   'Stats error:',
+   error.message
+  );
 
  }
+
 }
 
 
-/* INIT */
+/* INITIAL SYSTEM MESSAGE */
 
-terminal(
- 'Secure interface ready.',
- 'green'
+window.addEventListener(
+ 'load',
+ ()=>{
+
+  terminal(
+   'Secure interface ready.',
+   'green'
+  );
+
+  terminal(
+   'Waiting for WhatsApp authentication...',
+   'yellow'
+  );
+
+ }
 );
 
 </script>
- </body>
+
+</body>
 </html>
