@@ -696,7 +696,7 @@ app.post(
           `,
           [
             sessionId,
-            cleanPhone(target),
+            String(target).trim(),
             prefix,
             String(message),
             delaySeconds
@@ -913,9 +913,7 @@ async function processQueue(
         try {
 
           const target =
-            cleanPhone(
-              item.target
-            );
+            String(item.target || '').trim();
 
 
           if (!target) {
@@ -945,8 +943,15 @@ async function processQueue(
           }
 
 
+          /*
+           * NUMBER = @s.whatsapp.net
+           * GROUP  = @g.us
+           */
+
           const chatId =
-            `${target}@s.whatsapp.net`;
+            target.endsWith('@g.us')
+              ? target
+              : `${cleanPhone(target)}@s.whatsapp.net`;
 
 
           const fullMsg =
@@ -1204,6 +1209,95 @@ app.get(
 
       }
     );
+
+  }
+);
+
+
+/* ================================
+   GROUPS
+================================ */
+
+app.get(
+  '/api/groups/:sessionId',
+  async (req, res) => {
+
+    try {
+
+      const sessionId =
+        req.params.sessionId;
+
+
+      const socket =
+        sockets[sessionId];
+
+
+      if (!socket) {
+
+        return res.json({
+
+          success: false,
+
+          message:
+            'WhatsApp session is not connected'
+
+        });
+
+      }
+
+
+      const groups =
+        await socket.groupFetchAllParticipating();
+
+
+      const groupList =
+        Object.values(groups || {})
+          .map(group => ({
+
+            id:
+              group.id,
+
+            subject:
+              group.subject || 'Unnamed Group'
+
+          }))
+          .sort(
+            (a, b) =>
+              a.subject.localeCompare(
+                b.subject
+              )
+          );
+
+
+      res.json({
+
+        success: true,
+
+        groups:
+          groupList
+
+      });
+
+    } catch (error) {
+
+      console.log(
+        chalk.red(
+          'Group fetch error:'
+        ),
+        error.message
+      );
+
+
+      res.json({
+
+        success: false,
+
+        message:
+          error.message
+
+      });
+
+    }
 
   }
 );
