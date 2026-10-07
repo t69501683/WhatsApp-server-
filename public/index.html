@@ -1,11 +1,10 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1.0">
-<title>SUIYAN PAPA TOOL</title>
-
-<style>
+ <head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1.0">
+  <title>SUIYAN PAPA TOOL</title>
+  <style>
 @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700;800;900&family=Share+Tech+Mono&display=swap');
 
 *{box-sizing:border-box;margin:0;padding:0}
@@ -659,283 +658,141 @@ textarea{
  }
 }
 </style>
-</head>
-
-<body>
-
-<div class="particle p1"></div>
-<div class="particle p2"></div>
-<div class="particle p3"></div>
-<div class="particle p4"></div>
-<div class="particle p5"></div>
-<div class="particle p6"></div>
-
-<div class="container">
-
-<div class="topbar">
- <span>SYS://SUIYAN_NODE_01</span>
- <span class="online">SYSTEM ONLINE</span>
-</div>
-
-<div class="logo-wrap">
- <div class="logo">SUIYAN PAPA TOOL</div>
-</div>
-
-<div class="subtitle">
- ◈ ELITE WHATSAPP CONTROL SYSTEM ◈
-</div>
-
-<div class="system-line">
- <span></span>
- <b>SECURE // ENCRYPTED // ACTIVE</b>
- <span></span>
-</div>
-
-<div class="grid">
-
-<!-- AUTH -->
-<div class="panel">
- <i class="corner c1"></i>
- <i class="corner c2"></i>
- <i class="corner c3"></i>
- <i class="corner c4"></i>
-
- <div class="panel-title">
-  <span class="icon">◈</span>
-  WHATSAPP AUTH
-  <span class="tag">NODE 01</span>
- </div>
-
- <div class="input-wrap">
-  <label>PHONE NUMBER</label>
-  <input
-   id="phone"
-   type="text"
-   placeholder="919XXXXXXXXX"
-   autocomplete="off"
-  >
- </div>
-
- <button class="btn" onclick="login()">
-  [ INITIALIZE SESSION ]
- </button>
-
- <div class="input-wrap" style="margin-top:15px">
-  <label>SESSION IDENTIFIER</label>
-  <input
-   id="session"
-   type="text"
-   placeholder="WAITING FOR SESSION..."
-   readonly
-  >
- </div>
-
- <div id="pairBox">
-  <div class="pair-title">
-   WHATSAPP PAIRING CODE
+ </head>
+ <body>
+  <div class="particle p1"></div>
+  <div class="particle p2"></div>
+  <div class="particle p3"></div>
+  <div class="particle p4"></div>
+  <div class="particle p5"></div>
+  <div class="particle p6"></div>
+  <div class="container">
+   <div class="topbar">
+    <span>SYS://SUIYAN_NODE_01</span> <span class="online">SYSTEM ONLINE</span>
+   </div>
+   <div class="logo-wrap">
+    <div class="logo">SUIYAN PAPA TOOL</div>
+   </div>
+   <div class="subtitle">◈ ELITE WHATSAPP CONTROL SYSTEM ◈</div>
+   <div class="system-line">
+    <span></span> <b>SECURE // ENCRYPTED // ACTIVE</b> <span></span>
+   </div>
+   <div class="grid">
+    <!-- AUTH -->
+    <div class="panel">
+     <i class="corner c1"></i> <i class="corner c2"></i> <i class="corner c3"></i> <i class="corner c4"></i>
+     <div class="panel-title">
+      <span class="icon">◈</span> WHATSAPP AUTH <span class="tag">NODE 01</span>
+     </div>
+     <div class="input-wrap">
+      <label>PHONE NUMBER</label> <input id="phone" type="text" placeholder="919XXXXXXXXX" autocomplete="off">
+     </div>
+     <button class="btn" onclick="login()">[ INITIALIZE SESSION ]</button>
+     <div class="input-wrap" style="margin-top:15px">
+      <label>SESSION IDENTIFIER</label> <input id="session" type="text" placeholder="WAITING FOR SESSION..." readonly>
+     </div>
+     <div id="pairBox">
+      <div class="pair-title">WHATSAPP PAIRING CODE</div>
+      <div id="pairingCode">WAITING...</div>
+      <div class="pair-help">
+       WHATSAPP → SETTINGS → LINKED DEVICES
+       <br>
+       → LINK A DEVICE → LINK WITH PHONE NUMBER
+      </div>
+     </div>
+     <div class="status-box">
+      <span class="status-dot"></span> <span id="connectionStatus"> NODE STATUS: WAITING </span>
+     </div>
+     <div class="owner">
+      SYSTEM OWNER // <strong>SUIYAN PAPA</strong>
+     </div>
+    </div>
+    <!-- MONITOR -->
+    <div class="panel">
+     <i class="corner c1"></i> <i class="corner c2"></i> <i class="corner c3"></i> <i class="corner c4"></i>
+     <div class="panel-title">
+      <span class="icon">◉</span> SYSTEM MONITOR <span class="tag">LIVE</span>
+     </div>
+     <div class="stats">
+      <div class="stat">
+       <div class="stat-number" id="activeSessions">0</div>
+       <div class="stat-label">SESSIONS</div>
+      </div>
+      <div class="stat">
+       <div class="stat-number" id="messagesSent">0</div>
+       <div class="stat-label">SENT</div>
+      </div>
+      <div class="stat">
+       <div class="stat-number" id="engineStatus">OFF</div>
+       <div class="stat-label">ENGINE</div>
+      </div>
+     </div>
+     <div class="monitor">
+      <div class="monitor-row">
+       <span>CORE STATUS</span> <span class="good">ONLINE</span>
+      </div>
+      <div class="monitor-row">
+       <span>NETWORK</span> <span class="good">SECURE</span>
+      </div>
+      <div class="monitor-row">
+       <span>ENCRYPTION</span> <span class="good">ACTIVE</span>
+      </div>
+      <div class="monitor-row">
+       <span>AUTOMATION</span> <span id="engineText" class="warn">STANDBY</span>
+      </div>
+      <div class="monitor-row">
+       <span>NODE</span> <span style="color:var(--cyan)">SUIYAN-01</span>
+      </div>
+     </div>
+    </div>
+    <!-- AUTOMATION -->
+    <div class="panel">
+     <i class="corner c1"></i> <i class="corner c2"></i> <i class="corner c3"></i> <i class="corner c4"></i>
+     <div class="panel-title">
+      <span class="icon">◆</span> AUTOMATION QUEUE <span class="tag">CONTROL</span>
+     </div>
+     <div class="input-wrap">
+      <label>TARGET NUMBER</label> <input id="target" type="text" placeholder="919XXXXXXXXX">
+     </div>
+     <div class="input-wrap">
+      <label>MESSAGE PREFIX</label> <input id="prefix" type="text" placeholder="OPTIONAL PREFIX">
+     </div>
+     <div class="input-wrap">
+      <label>MESSAGE DATA // ONE PER LINE</label> <textarea id="messages" placeholder="ENTER MESSAGE HERE...
+MESSAGE 01
+MESSAGE 02"></textarea>
+     </div>
+     <!-- TXT FILE UPLOAD -->
+     <div class="input-wrap">
+      <label>LOAD MESSAGE FILE // TXT</label> <input id="messageFile" type="file" accept=".txt" onchange="loadMessageFile(this)">
+     </div>
+     <div class="input-wrap">
+      <label>DELAY / SPEED</label> <input id="speed" type="number" value="5" min="1">
+     </div>
+     <button class="btn" onclick="startAutomation()">[ START AUTOMATION ]</button>
+     <div class="input-wrap" style="margin-top:15px">
+      <label>STOP SESSION ID / UNIQUE KEY</label> <input id="stopSession" type="text" placeholder="PASTE SESSION ID / UNIQUE KEY" autocomplete="off">
+     </div>
+     <button class="btn stop" onclick="stopAutomation()">[ STOP AUTOMATION ]</button>
+    </div>
+    <!-- TERMINAL -->
+    <div class="terminal">
+     <div class="terminal-head">
+      <span class="t-red"></span> <span class="t-yellow"></span> <span class="t-green"></span> <span class="terminal-title"> SUIYAN // LIVE SYSTEM TERMINAL </span>
+     </div>
+     <div id="terminal">
+      <div class="log-green">&gt; SUIYAN PAPA TOOL INITIALIZED</div>
+      <div class="log-cyan">&gt; CYBERPUNK INTERFACE LOADED</div>
+      <div class="log-green">&gt; SYSTEM ONLINE</div>
+      <div class="log-yellow">&gt; WAITING FOR WHATSAPP SESSION...</div>
+     </div>
+    </div>
+   </div>
+   <div class="footer">
+    SUIYAN PAPA TOOL // <b>PRIVATE CONTROL NODE</b> // SYSTEM READY
+   </div>
   </div>
-
-  <div id="pairingCode">
-   WAITING...
-  </div>
-
-  <div class="pair-help">
-   WHATSAPP → SETTINGS → LINKED DEVICES<br>
-   → LINK A DEVICE → LINK WITH PHONE NUMBER
-  </div>
- </div>
-
- <div class="status-box">
-  <span class="status-dot"></span>
-  <span id="connectionStatus">
-   NODE STATUS: WAITING
-  </span>
- </div>
-
- <div class="owner">
-  SYSTEM OWNER //
-  <strong>SUIYAN PAPA</strong>
- </div>
-</div>
-
-
-<!-- MONITOR -->
-<div class="panel">
- <i class="corner c1"></i>
- <i class="corner c2"></i>
- <i class="corner c3"></i>
- <i class="corner c4"></i>
-
- <div class="panel-title">
-  <span class="icon">◉</span>
-  SYSTEM MONITOR
-  <span class="tag">LIVE</span>
- </div>
-
- <div class="stats">
-
-  <div class="stat">
-   <div class="stat-number" id="activeSessions">0</div>
-   <div class="stat-label">SESSIONS</div>
-  </div>
-
-  <div class="stat">
-   <div class="stat-number" id="messagesSent">0</div>
-   <div class="stat-label">SENT</div>
-  </div>
-
-  <div class="stat">
-   <div class="stat-number" id="engineStatus">OFF</div>
-   <div class="stat-label">ENGINE</div>
-  </div>
-
- </div>
-
- <div class="monitor">
-
-  <div class="monitor-row">
-   <span>CORE STATUS</span>
-   <span class="good">ONLINE</span>
-  </div>
-
-  <div class="monitor-row">
-   <span>NETWORK</span>
-   <span class="good">SECURE</span>
-  </div>
-
-  <div class="monitor-row">
-   <span>ENCRYPTION</span>
-   <span class="good">ACTIVE</span>
-  </div>
-
-  <div class="monitor-row">
-   <span>AUTOMATION</span>
-   <span id="engineText" class="warn">STANDBY</span>
-  </div>
-
-  <div class="monitor-row">
-   <span>NODE</span>
-   <span style="color:var(--cyan)">SUIYAN-01</span>
-  </div>
-
- </div>
-</div>
-
-
-<!-- AUTOMATION -->
-<div class="panel">
- <i class="corner c1"></i>
- <i class="corner c2"></i>
- <i class="corner c3"></i>
- <i class="corner c4"></i>
-
- <div class="panel-title">
-  <span class="icon">◆</span>
-  AUTOMATION QUEUE
-  <span class="tag">CONTROL</span>
- </div>
-
- <div class="input-wrap">
-  <label>TARGET NUMBER</label>
-  <input
-   id="target"
-   type="text"
-   placeholder="919XXXXXXXXX"
-  >
- </div>
-
- <div class="input-wrap">
-  <label>MESSAGE PREFIX</label>
-  <input
-   id="prefix"
-   type="text"
-   placeholder="OPTIONAL PREFIX"
-  >
- </div>
-
- <div class="input-wrap">
-  <label>MESSAGE DATA // ONE PER LINE</label>
-  <textarea
-   id="messages"
-   placeholder="ENTER MESSAGE HERE...&#10;MESSAGE 01&#10;MESSAGE 02"
-  ></textarea>
- </div>
-
- <!-- TXT FILE UPLOAD -->
- <div class="input-wrap">
-  <label>LOAD MESSAGE FILE // TXT</label>
-  <input
-   id="messageFile"
-   type="file"
-   accept=".txt"
-   onchange="loadMessageFile(this)"
-  >
- </div>
-
- <div class="input-wrap">
-  <label>DELAY / SPEED</label>
-  <input
-   id="speed"
-   type="number"
-   value="5"
-   min="1"
-  >
- </div>
-
- <button class="btn" onclick="startAutomation()">
-  [ START AUTOMATION ]
- </button>
-
- <button class="btn stop" onclick="stopAutomation()">
-  [ STOP AUTOMATION ]
- </button>
-</div>
-
-
-<!-- TERMINAL -->
-<div class="terminal">
-
- <div class="terminal-head">
-  <span class="t-red"></span>
-  <span class="t-yellow"></span>
-  <span class="t-green"></span>
-  <span class="terminal-title">
-   SUIYAN // LIVE SYSTEM TERMINAL
-  </span>
- </div>
-
- <div id="terminal">
-
-  <div class="log-green">
-   &gt; SUIYAN PAPA TOOL INITIALIZED
-  </div>
-
-  <div class="log-cyan">
-   &gt; CYBERPUNK INTERFACE LOADED
-  </div>
-
-  <div class="log-green">
-   &gt; SYSTEM ONLINE
-  </div>
-
-  <div class="log-yellow">
-   &gt; WAITING FOR WHATSAPP SESSION...
-  </div>
-
- </div>
-
-</div>
-
-</div>
-
-<div class="footer">
- SUIYAN PAPA TOOL // <b>PRIVATE CONTROL NODE</b> // SYSTEM READY
-</div>
-
-</div>
-
-
-<script>
+  <script>
 
 let currentSession = '';
 let pairingTimer = null;
@@ -1312,15 +1169,18 @@ async function startAutomation(){
 async function stopAutomation(){
 
  const sessionId=document
-  .getElementById('session')
+  .getElementById('stopSession')
   .value
   .trim();
 
- if(!sessionId)return;
+ if(!sessionId){
+  alert('Enter Session ID / Unique Key to stop');
+  return;
+ }
 
  try{
 
-  await fetch(
+  const response=await fetch(
    '/api/stop-automation',
    {
     method:'POST',
@@ -1332,6 +1192,17 @@ async function stopAutomation(){
     })
    }
   );
+
+  const data=await response.json();
+
+  if(!data.success){
+   terminal(
+    data.message || 'Unable to stop automation',
+    'red'
+   );
+   alert(data.message || 'Unable to stop automation');
+   return;
+  }
 
   document
    .getElementById('engineStatus')
@@ -1346,7 +1217,7 @@ async function stopAutomation(){
    .className='warn';
 
   terminal(
-   'Automation stopped.',
+   'Automation stopped for session: '+sessionId,
    'red'
   );
 
@@ -1457,6 +1328,5 @@ terminal(
 );
 
 </script>
-
-</body>
+ </body>
 </html>
