@@ -1,161 +1,258 @@
 import express from 'express';
 import fs from 'fs';
+import path from 'path';
+import pino from 'pino';
+import cors from 'cors';
 import chalk from 'chalk';
+
 import makeWASocket, {
   useMultiFileAuthState,
   Browsers,
   DisconnectReason,
-  fetchLatestBaileysVersion
+  fetchLatestWaWebVersion
 } from '@whiskeysockets/baileys';
-import pino from 'pino';
-import sqlite3 from 'sqlite3';
-import path from 'path';
+
 import { fileURLToPath } from 'url';
-import cors from 'cors';
+
+
+/* =========================================
+   PATH
+========================================= */
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
+
+/* =========================================
+   EXPRESS
+========================================= */
+
 const app = express();
-const PORT = process.env.PORT || 3000;
+
+const PORT =
+  process.env.PORT || 3000;
 
 app.use(cors());
-app.use(express.json({ limit: '2mb' }));
+
+app.use(
+  express.json({
+    limit: '2mb'
+  })
+);
 
 app.use(
   express.static(
-    path.join(__dirname, 'public')
+    path.join(
+      __dirname,
+      'public'
+    )
   )
 );
 
 
-/* ================================
-   DATABASE
-================================ */
-
-const db = new sqlite3.Database(
-  path.join(__dirname, 'automation.db')
-);
-
-db.serialize(() => {
-
-  db.run(`
-    CREATE TABLE IF NOT EXISTS sessions (
-      id TEXT PRIMARY KEY,
-      phone TEXT,
-      isConnected INTEGER DEFAULT 0,
-      sentCount INTEGER DEFAULT 0
-    )
-  `);
-
-  db.run(`
-    CREATE TABLE IF NOT EXISTS messageQueue (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      sessionId TEXT,
-      target TEXT,
-      prefix TEXT,
-      message TEXT,
-      speed INTEGER,
-      isActive INTEGER DEFAULT 1,
-      sentCount INTEGER DEFAULT 0
-    )
-  `);
-
-  db.run(`
-    CREATE TABLE IF NOT EXISTS sentLogs (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      sessionId TEXT,
-      target TEXT,
-      message TEXT,
-      sentAt DATETIME DEFAULT CURRENT_TIMESTAMP
-    )
-  `);
-
-});
-
-
-/* ================================
+/* =========================================
    MEMORY
-================================ */
+========================================= */
 
 const sockets = {};
+
 const pairingCodes = {};
-const queueTimers = {};
-const queueProcessing = {};
+
 const connectingSessions = {};
+
 const reconnectTimers = {};
 
 
-/* ================================
+/* =========================================
+   SESSION DIRECTORY
+========================================= */
+
+const sessionsDir =
+  path.join(
+    __dirname,
+    'sessions'
+  );
+
+if (
+  !fs.existsSync(
+    sessionsDir
+  )
+) {
+  fs.mkdirSync(
+    sessionsDir,
+    {
+      recursive: true
+    }
+  );
+}
+
+
+/* =========================================
    PHONE CLEANER
-================================ */
+========================================= */
 
 function cleanPhone(phone) {
 
-  return String(phone || '')
-    .replace(/\D/g, '');
+  return String(
+    phone || ''
+  )
+    .replace(
+      /\D/g,
+      ''
+    );
 
 }
 
 
-/* ================================
-   WHATSAPP CONNECTION
-================================ */
+/* =========================================
+   CONNECT WHATSAPP
+========================================= */
 
-async function connectWA(phone, sessionId) {
+async function connectWA(
+  phone,
+  sessionId
+) {
 
-  if (connectingSessions[sessionId]) {
-    return sockets[sessionId];
+  if (
+    connectingSessions[
+      sessionId
+    ]
+  ) {
+
+    console.log(
+      chalk.yellow(
+        `[${sessionId}] Connection already in progress`
+      )
+    );
+
+    return sockets[
+      sessionId
+    ];
+
   }
 
-  connectingSessions[sessionId] = true;
+
+  connectingSessions[
+    sessionId
+  ] = true;
+
 
   try {
 
-    const sessionPath = path.join(
-      __dirname,
-      'sessions',
-      sessionId
-    );
+    const authPath =
+      path.join(
+        sessionsDir,
+        sessionId
+      );
 
-    if (!fs.existsSync(sessionPath)) {
-      fs.mkdirSync(sessionPath, { recursive: true });
+
+    if (
+      !fs.existsSync(
+        authPath
+      )
+    ) {
+
+      fs.mkdirSync(
+        authPath,
+        {
+          recursive: true
+        }
+      );
+
     }
+
 
     const {
       state,
       saveCreds
-    } = await useMultiFileAuthState(sessionPath);
+    } =
+      await useMultiFileAuthState(
+        authPath
+      );
+
+
+    /*
+     * IMPORTANT:
+     *
+     * Do NOT use fetchLatestBaileysVersion()
+     * here.
+     *
+     * fetchLatestWaWebVersion() gets the
+     * current WhatsApp Web version.
+     */
 
     const {
       version
-    } = await fetchLatestBaileysVersion();
+    } =
+      await fetchLatestWaWebVersion();
 
-    const socket = makeWASocket({
-      version,
-      logger: pino({ level: 'silent' }),
-      browser: Browsers.macOS('Chrome'),
-      auth: state,
-      printQRInTerminal: false,
-      markOnlineOnConnect: false,
-      syncFullHistory: false,
-      keepAliveIntervalMs: 30000,
-      connectTimeoutMs: 60000
-    });
 
-    sockets[sessionId] = socket;
+    console.log('');
 
-    socket.ev.on('creds.update', saveCreds);
+    console.log(
+      chalk.cyan(
+        `[${sessionId}] WhatsApp Web version: ${version.join('.')}`
+      )
+    );
 
-    /* ================================
+
+    const socket =
+      makeWASocket({
+
+        version,
+
+        auth:
+          state,
+
+        browser:
+          Browsers.macOS(
+            'Chrome'
+          ),
+
+        logger:
+          pino({
+            level: 'silent'
+          }),
+
+        connectTimeoutMs:
+          60000,
+
+        keepAliveIntervalMs:
+          30000,
+
+        markOnlineOnConnect:
+          false,
+
+        syncFullHistory:
+          false
+
+      });
+
+
+    sockets[
+      sessionId
+    ] = socket;
+
+
+    socket.ev.on(
+      'creds.update',
+      saveCreds
+    );
+
+
+    let pairingStarted =
+      false;
+
+
+    /* =====================================
        CONNECTION UPDATE
-    ================================= */
-
-    let pairingRequested = false;
+    ===================================== */
 
     socket.ev.on(
       'connection.update',
-      async (update) => {
+      async (
+        update
+      ) => {
 
         const {
           connection,
@@ -163,217 +260,380 @@ async function connectWA(phone, sessionId) {
           qr
         } = update;
 
-        if (connection === 'connecting') {
-          console.log(
-            chalk.yellow(
-              `[${sessionId}] WhatsApp connecting...`
-            )
-          );
-        }
 
         /*
-         * Pairing code is requested only when WhatsApp
-         * has emitted the QR/auth event.
+         * CONNECTING
+         */
+
+        if (
+          connection ===
+          'connecting'
+        ) {
+
+          console.log(
+            chalk.yellow(
+              `[${sessionId}] Connecting to WhatsApp...`
+            )
+          );
+
+        }
+
+
+        /*
+         * PAIRING CODE
+         *
+         * Official Baileys pairing flow:
+         * wait for QR event, then request code.
          */
 
         if (
           qr &&
           !state.creds.registered &&
-          !pairingRequested
+          !pairingStarted
         ) {
 
-          pairingRequested = true;
+          pairingStarted =
+            true;
 
-          const number = cleanPhone(phone);
 
-          if (!number) {
+          const number =
+            cleanPhone(
+              phone
+            );
 
-            pairingCodes[sessionId] = {
-              error: 'Invalid phone number'
+
+          if (
+            !number
+          ) {
+
+            pairingCodes[
+              sessionId
+            ] = {
+              error:
+                'Invalid phone number'
             };
-
-          } else {
-
-            try {
-
-              console.log(
-                chalk.cyan(
-                  `[${sessionId}] Generating pairing code...`
-                )
-              );
-
-              const code =
-                await socket.requestPairingCode(number);
-
-              pairingCodes[sessionId] = code;
-
-              console.log(
-                chalk.green(
-                  '================================'
-                )
-              );
-
-              console.log(
-                chalk.green(
-                  `PAIRING CODE: ${code}`
-                )
-              );
-
-              console.log(
-                chalk.green(
-                  '================================'
-                )
-              );
-
-            } catch (error) {
-
-              pairingCodes[sessionId] = {
-                error: error.message
-              };
-
-              console.log(
-                chalk.red(
-                  `[${sessionId}] Pairing code error:`
-                ),
-                error.message
-              );
-            }
-          }
-        }
-
-        if (connection === 'open') {
-
-          console.log(
-            chalk.green(
-              `[${sessionId}] WhatsApp CONNECTED`
-            )
-          );
-
-          db.run(
-            `
-            UPDATE sessions
-            SET isConnected = 1
-            WHERE id = ?
-            `,
-            [sessionId]
-          );
-
-          delete pairingCodes[sessionId];
-          delete connectingSessions[sessionId];
-
-          if (reconnectTimers[sessionId]) {
-            clearTimeout(reconnectTimers[sessionId]);
-            delete reconnectTimers[sessionId];
-          }
-
-          processQueue(sessionId);
-        }
-
-        if (connection === 'close') {
-
-          const statusCode =
-            lastDisconnect?.error?.output?.statusCode;
-
-          console.log(
-            chalk.red(
-              `[${sessionId}] WhatsApp connection closed (code: ${statusCode || 'unknown'})`
-            )
-          );
-
-          db.run(
-            `
-            UPDATE sessions
-            SET isConnected = 0
-            WHERE id = ?
-            `,
-            [sessionId]
-          );
-
-          delete sockets[sessionId];
-          delete connectingSessions[sessionId];
-
-          if (queueTimers[sessionId]) {
-            clearTimeout(queueTimers[sessionId]);
-            delete queueTimers[sessionId];
-          }
-
-          queueProcessing[sessionId] = false;
-
-          if (statusCode === DisconnectReason.loggedOut) {
-
-            delete pairingCodes[sessionId];
 
             console.log(
               chalk.red(
-                `[${sessionId}] WhatsApp session logged out. Re-pair required.`
+                `[${sessionId}] Invalid phone number`
               )
             );
 
             return;
+
           }
 
-          if (!reconnectTimers[sessionId]) {
 
-            const reconnectDelay =
-              statusCode === DisconnectReason.restartRequired
-                ? 1000
-                : 5000;
+          try {
 
             console.log(
-              chalk.yellow(
-                `[${sessionId}] Reconnecting in ${reconnectDelay / 1000}s...`
+              chalk.cyan(
+                `[${sessionId}] WhatsApp socket ready. Requesting pairing code...`
               )
             );
 
-            reconnectTimers[sessionId] = setTimeout(() => {
 
-              delete reconnectTimers[sessionId];
+            const code =
+              await socket.requestPairingCode(
+                number
+              );
 
-              connectWA(
-                phone,
-                sessionId
-              ).catch(error => {
 
-                console.log(
-                  chalk.red(
-                    `[${sessionId}] Reconnect error:`
-                  ),
-                  error.message
-                );
+            pairingCodes[
+              sessionId
+            ] = code;
 
-              });
 
-            }, reconnectDelay);
+            console.log('');
+
+            console.log(
+              chalk.green(
+                '========================================'
+              )
+            );
+
+            console.log(
+              chalk.green(
+                `       PAIRING CODE: ${code}`
+              )
+            );
+
+            console.log(
+              chalk.green(
+                '========================================'
+              )
+            );
+
+            console.log('');
+
+          } catch (
+            error
+          ) {
+
+            pairingCodes[
+              sessionId
+            ] = {
+              error:
+                error.message
+            };
+
+
+            console.log(
+              chalk.red(
+                `[${sessionId}] Pairing code request failed:`
+              ),
+              error.message
+            );
+
           }
+
         }
+
+
+        /*
+         * OPEN
+         */
+
+        if (
+          connection ===
+          'open'
+        ) {
+
+          console.log('');
+
+          console.log(
+            chalk.green(
+              '========================================'
+            )
+          );
+
+          console.log(
+            chalk.green(
+              `[${sessionId}] WHATSAPP CONNECTED`
+            )
+          );
+
+          console.log(
+            chalk.green(
+              '========================================'
+            )
+          );
+
+          console.log('');
+
+
+          delete pairingCodes[
+            sessionId
+          ];
+
+          delete connectingSessions[
+            sessionId
+          ];
+
+
+          if (
+            reconnectTimers[
+              sessionId
+            ]
+          ) {
+
+            clearTimeout(
+              reconnectTimers[
+                sessionId
+              ]
+            );
+
+            delete reconnectTimers[
+              sessionId
+            ];
+
+          }
+
+        }
+
+
+        /*
+         * CLOSE
+         */
+
+        if (
+          connection ===
+          'close'
+        ) {
+
+          const statusCode =
+            lastDisconnect
+              ?.error
+              ?.output
+              ?.statusCode;
+
+
+          console.log('');
+
+          console.log(
+            chalk.red(
+              `[${sessionId}] WhatsApp connection closed`
+            )
+          );
+
+          console.log(
+            chalk.red(
+              `[${sessionId}] Disconnect code: ${statusCode || 'unknown'}`
+            )
+          );
+
+
+          delete sockets[
+            sessionId
+          ];
+
+          delete connectingSessions[
+            sessionId
+          ];
+
+
+          /*
+           * LOGGED OUT
+           */
+
+          if (
+            statusCode ===
+            DisconnectReason.loggedOut
+          ) {
+
+            delete pairingCodes[
+              sessionId
+            ];
+
+
+            console.log(
+              chalk.red(
+                `[${sessionId}] Session logged out. Fresh pairing required.`
+              )
+            );
+
+            return;
+
+          }
+
+
+          /*
+           * RECONNECT
+           */
+
+          if (
+            !reconnectTimers[
+              sessionId
+            ]
+          ) {
+
+            let delay =
+              5000;
+
+
+            if (
+              statusCode ===
+              DisconnectReason.restartRequired
+            ) {
+
+              delay =
+                1500;
+
+            }
+
+
+            console.log(
+              chalk.yellow(
+                `[${sessionId}] Reconnecting in ${delay / 1000}s...`
+              )
+            );
+
+
+            reconnectTimers[
+              sessionId
+            ] =
+              setTimeout(
+                async () => {
+
+                  delete reconnectTimers[
+                    sessionId
+                  ];
+
+
+                  try {
+
+                    await connectWA(
+                      phone,
+                      sessionId
+                    );
+
+                  } catch (
+                    error
+                  ) {
+
+                    console.log(
+                      chalk.red(
+                        `[${sessionId}] Reconnect failed:`
+                      ),
+                      error.message
+                    );
+
+                  }
+
+                },
+                delay
+              );
+
+          }
+
+        }
+
       }
     );
 
+
     return socket;
 
-  } catch (error) {
 
-    delete connectingSessions[sessionId];
+  } catch (
+    error
+  ) {
+
+    delete connectingSessions[
+      sessionId
+    ];
+
+
+    delete sockets[
+      sessionId
+    ];
+
 
     console.log(
       chalk.red(
-        `[${sessionId}] Connection error:`
+        `[${sessionId}] WhatsApp initialization error:`
       ),
       error.message
     );
 
+
     throw error;
+
   }
+
 }
 
 
-/* ================================
+/* =========================================
    LOGIN
-================================ */
+========================================= */
 
 app.post(
   '/api/login',
-  async (req, res) => {
+  async (
+    req,
+    res
+  ) => {
 
     try {
 
@@ -382,50 +642,69 @@ app.post(
           req.body.phone
         );
 
-      if (!phone) {
+
+      if (
+        !phone
+      ) {
 
         return res.json({
-          success: false,
-          message: 'Phone number required'
+          success:
+            false,
+
+          message:
+            'Phone number required'
         });
 
       }
 
+
+      /*
+       * Fresh unique session
+       */
+
       const sessionId =
         `session_${Date.now()}`;
 
-      db.run(
-        `
-        INSERT INTO sessions
-        (id, phone, isConnected, sentCount)
-        VALUES (?, ?, 0, 0)
-        `,
-        [
-          sessionId,
-          phone
-        ]
-      );
 
       await connectWA(
         phone,
         sessionId
       );
 
+
       res.json({
-        success: true,
+
+        success:
+          true,
+
         sessionId,
+
         message:
-          'Pairing code is being generated'
+          'WhatsApp connection started. Waiting for pairing code.'
+
       });
 
-    } catch (error) {
 
-      console.error(error);
+    } catch (
+      error
+    ) {
+
+      console.log(
+        chalk.red(
+          'Login error:'
+        ),
+        error.message
+      );
+
 
       res.json({
-        success: false,
+
+        success:
+          false,
+
         message:
           error.message
+
       });
 
     }
@@ -434,585 +713,278 @@ app.post(
 );
 
 
-/* ================================
+/* =========================================
    PAIRING CODE
-================================ */
+========================================= */
 
 app.get(
   '/api/pairing-code/:sessionId',
-  (req, res) => {
+  (
+    req,
+    res
+  ) => {
 
     const sessionId =
       req.params.sessionId;
+
 
     const code =
       pairingCodes[
         sessionId
       ];
 
-    if (!code) {
+
+    if (
+      !code
+    ) {
 
       return res.json({
-        success: false,
-        status: 'waiting'
+
+        success:
+          false,
+
+        status:
+          'waiting'
+
       });
 
     }
 
+
     if (
-      typeof code === 'object' &&
+      typeof code ===
+        'object' &&
       code.error
     ) {
 
       return res.json({
-        success: false,
-        status: 'error',
+
+        success:
+          false,
+
+        status:
+          'error',
+
         message:
           code.error
+
       });
 
     }
 
+
     res.json({
-      success: true,
-      status: 'ready',
+
+      success:
+        true,
+
+      status:
+        'ready',
+
       pairingCode:
         code
+
     });
 
   }
 );
 
 
-/* ================================
-   START AUTOMATION
-================================ */
+/* =========================================
+   CONNECTION STATUS
+========================================= */
 
-app.post(
-  '/api/start-automation',
-  (req, res) => {
+app.get(
+  '/api/status/:sessionId',
+  (
+    req,
+    res
+  ) => {
 
-    const {
-      sessionId,
-      target,
-      prefix = '',
-      messages = [],
-      speed = 5
-    } = req.body;
-
-    if (
-      !sessionId ||
-      !target ||
-      !Array.isArray(messages) ||
-      messages.length === 0
-    ) {
-
-      return res.json({
-        success: false,
-        message:
-          'Missing automation data'
-      });
-
-    }
-
-    const pending =
-      messages.filter(
-        message =>
-          String(message).trim()
-      );
-
-    if (
-      pending.length === 0
-    ) {
-
-      return res.json({
-        success: false,
-        message:
-          'No valid messages'
-      });
-
-    }
-
-    const delaySeconds =
-      Math.max(
-        1,
-        Number(speed) || 5
-      );
-
-    pending.forEach(
-      message => {
-
-        db.run(
-          `
-          INSERT INTO messageQueue
-          (
-            sessionId,
-            target,
-            prefix,
-            message,
-            speed,
-            isActive,
-            sentCount
-          )
-          VALUES (?, ?, ?, ?, ?, 1, 0)
-          `,
-          [
-            sessionId,
-            cleanPhone(target),
-            prefix,
-            String(message),
-            delaySeconds
-          ]
-        );
-
-      }
-    );
-
-    processQueue(
-      sessionId
-    );
-
-    res.json({
-      success: true,
-      message:
-        `${pending.length} message(s) added to queue`,
-      delay:
-        delaySeconds
-    });
-
-  }
-);
+    const sessionId =
+      req.params.sessionId;
 
 
-/* ================================
-   STOP AUTOMATION
-================================ */
-
-app.post(
-  '/api/stop-automation',
-  (req, res) => {
-
-    const {
-      sessionId
-    } = req.body;
-
-    if (!sessionId) {
-
-      return res.json({
-        success: false,
-        message:
-          'Session ID required'
-      });
-
-    }
-
-    db.run(
-      `
-      UPDATE messageQueue
-      SET isActive = 0
-      WHERE sessionId = ?
-      `,
-      [sessionId]
-    );
-
-    if (
-      queueTimers[sessionId]
-    ) {
-
-      clearTimeout(
-        queueTimers[sessionId]
-      );
-
-      delete queueTimers[
+    const socket =
+      sockets[
         sessionId
       ];
 
-    }
-
-    queueProcessing[
-      sessionId
-    ] = false;
 
     res.json({
-      success: true,
-      message:
-        'Automation stopped'
+
+      success:
+        true,
+
+      connected:
+        !!socket,
+
+      pairing:
+        !!pairingCodes[
+          sessionId
+        ]
+
     });
 
   }
 );
 
 
-/* ================================
-   QUEUE PROCESSOR
-================================ */
-
-async function processQueue(
-  sessionId
-) {
-
-  if (
-    queueProcessing[sessionId]
-  ) {
-
-    return;
-
-  }
-
-  queueProcessing[
-    sessionId
-  ] = true;
-
-  try {
-
-    const socket =
-      sockets[sessionId];
-
-    if (!socket) {
-
-      queueProcessing[
-        sessionId
-      ] = false;
-
-      return;
-
-    }
-
-    db.get(
-      `
-      SELECT *
-      FROM messageQueue
-      WHERE sessionId = ?
-      AND isActive = 1
-      ORDER BY id ASC
-      LIMIT 1
-      `,
-      [sessionId],
-      async (
-        error,
-        item
-      ) => {
-
-        if (error) {
-
-          console.log(
-            chalk.red(
-              `[${sessionId}] Queue database error:`
-            ),
-            error.message
-          );
-
-          queueProcessing[
-            sessionId
-          ] = false;
-
-          return;
-
-        }
-
-        if (!item) {
-
-          queueProcessing[
-            sessionId
-          ] = false;
-
-          return;
-
-        }
-
-        try {
-
-          const target =
-            cleanPhone(
-              item.target
-            );
-
-          if (!target) {
-
-            db.run(
-              `
-              UPDATE messageQueue
-              SET isActive = 0
-              WHERE id = ?
-              `,
-              [item.id],
-              () => {
-
-                queueProcessing[
-                  sessionId
-                ] = false;
-
-                processQueue(
-                  sessionId
-                );
-
-              }
-            );
-
-            return;
-
-          }
-
-          const chatId =
-            `${target}@s.whatsapp.net`;
-
-          const fullMsg =
-            `${item.prefix || ''} ${item.message}`
-              .trim();
-
-          console.log(
-            chalk.cyan(
-              `[${sessionId}] Sending message #${item.id} to ${target}...`
-            )
-          );
-
-          await socket.sendMessage(
-            chatId,
-            {
-              text: fullMsg
-            }
-          );
-
-          console.log(
-            chalk.green(
-              `[${sessionId}] Message sent successfully`
-            )
-          );
-
-          db.run(
-            `
-            INSERT INTO sentLogs
-            (
-              sessionId,
-              target,
-              message
-            )
-            VALUES (?, ?, ?)
-            `,
-            [
-              sessionId,
-              target,
-              fullMsg
-            ]
-          );
-
-          db.run(
-            `
-            UPDATE sessions
-            SET sentCount =
-              sentCount + 1
-            WHERE id = ?
-            `,
-            [sessionId]
-          );
-
-          db.run(
-            `
-            UPDATE messageQueue
-            SET
-              sentCount =
-                sentCount + 1,
-              isActive = 0
-            WHERE id = ?
-            `,
-            [item.id],
-            () => {
-
-              queueProcessing[
-                sessionId
-              ] = false;
-
-              const delaySeconds =
-                Math.max(
-                  1,
-                  Number(item.speed) || 5
-                );
-
-              const delayMs =
-                delaySeconds * 1000;
-
-              console.log(
-                chalk.yellow(
-                  `[${sessionId}] Next message in ${delaySeconds} second(s)`
-                )
-              );
-
-              queueTimers[
-                sessionId
-              ] = setTimeout(
-                () => {
-
-                  delete queueTimers[
-                    sessionId
-                  ];
-
-                  processQueue(
-                    sessionId
-                  );
-
-                },
-                delayMs
-              );
-
-            }
-          );
-
-        } catch (error) {
-
-          console.log(
-            chalk.red(
-              `[${sessionId}] Message send error:`
-            ),
-            error.message
-          );
-
-          db.run(
-            `
-            UPDATE messageQueue
-            SET isActive = 0
-            WHERE id = ?
-            `,
-            [item.id],
-            () => {
-
-              queueProcessing[
-                sessionId
-              ] = false;
-
-              queueTimers[
-                sessionId
-              ] = setTimeout(
-                () => {
-
-                  delete queueTimers[
-                    sessionId
-                  ];
-
-                  processQueue(
-                    sessionId
-                  );
-
-                },
-                1000
-              );
-
-            }
-          );
-
-        }
-
-      }
-    );
-
-  } catch (error) {
-
-    console.log(
-      chalk.red(
-        `[${sessionId}] Queue processor error:`
-      ),
-      error.message
-    );
-
-    queueProcessing[
-      sessionId
-    ] = false;
-
-  }
-
-}
-
-
-/* ================================
+/* =========================================
    SESSIONS
-================================ */
+========================================= */
 
 app.get(
   '/api/sessions',
-  (req, res) => {
+  (
+    req,
+    res
+  ) => {
 
-    db.all(
-      `
-      SELECT *
-      FROM sessions
-      ORDER BY rowid DESC
-      `,
-      [],
-      (error, rows) => {
+    const sessions =
+      Object.keys(
+        sockets
+      ).map(
+        id => ({
+          id,
+          connected:
+            true
+        })
+      );
 
-        if (error) {
 
-          return res.json({
-            success: false,
-            message:
-              error.message
-          });
+    res.json({
 
-        }
+      success:
+        true,
 
-        res.json({
-          success: true,
-          sessions:
-            rows
-        });
+      sessions
 
-      }
-    );
+    });
 
   }
 );
 
 
-/* ================================
-   LOGS
-================================ */
+/* =========================================
+   LOGOUT
+========================================= */
 
-app.get(
-  '/api/logs/:sessionId',
-  (req, res) => {
+app.post(
+  '/api/logout',
+  async (
+    req,
+    res
+  ) => {
 
-    db.all(
-      `
-      SELECT *
-      FROM sentLogs
-      WHERE sessionId = ?
-      ORDER BY id DESC
-      LIMIT 100
-      `,
-      [
-        req.params.sessionId
-      ],
-      (error, rows) => {
+    const {
+      sessionId
+    } = req.body;
 
-        if (error) {
 
-          return res.json({
-            success: false,
-            message:
-              error.message
-          });
+    if (
+      !sessionId
+    ) {
 
-        }
+      return res.json({
 
-        res.json({
-          success: true,
-          logs:
-            rows
-        });
+        success:
+          false,
+
+        message:
+          'Session ID required'
+
+      });
+
+    }
+
+
+    const socket =
+      sockets[
+        sessionId
+      ];
+
+
+    try {
+
+      if (
+        socket
+      ) {
+
+        await socket.logout();
 
       }
-    );
+
+
+      delete sockets[
+        sessionId
+      ];
+
+      delete pairingCodes[
+        sessionId
+      ];
+
+
+      if (
+        reconnectTimers[
+          sessionId
+        ]
+      ) {
+
+        clearTimeout(
+          reconnectTimers[
+            sessionId
+          ]
+        );
+
+        delete reconnectTimers[
+          sessionId
+        ];
+
+      }
+
+
+      res.json({
+
+        success:
+          true,
+
+        message:
+          'Session logged out'
+
+      });
+
+
+    } catch (
+      error
+    ) {
+
+      res.json({
+
+        success:
+          false,
+
+        message:
+          error.message
+
+      });
+
+    }
 
   }
 );
 
 
-/* ================================
+/* =========================================
    HOME
-================================ */
+========================================= */
 
 app.get(
   '/',
-  (req, res) => {
+  (
+    req,
+    res
+  ) => {
 
     res.sendFile(
       path.join(
@@ -1026,9 +998,9 @@ app.get(
 );
 
 
-/* ================================
+/* =========================================
    SERVER
-================================ */
+========================================= */
 
 app.listen(
   PORT,
@@ -1039,13 +1011,13 @@ app.listen(
 
     console.log(
       chalk.green(
-        '======================================'
+        '=========================================='
       )
     );
 
     console.log(
       chalk.green(
-        '       SUIYAN PAPA TOOL'
+        '          SUIYAN PAPA TOOL'
       )
     );
 
@@ -1057,15 +1029,17 @@ app.listen(
 
     console.log(
       chalk.green(
-        `       PORT: ${PORT}`
+        `             PORT: ${PORT}`
       )
     );
 
     console.log(
       chalk.green(
-        '======================================'
+        '=========================================='
       )
     );
+
+    console.log('');
 
   }
 );
