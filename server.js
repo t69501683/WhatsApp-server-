@@ -18,10 +18,14 @@ const __dirname = path.dirname(__filename);
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// Admin access
-const ADMIN_PHONE = String(
-  process.env.ADMIN_PHONE || '919674758561'
-).replace(/\D/g, '');
+/* ================================
+   ADMIN
+================================ */
+
+const ADMIN_PHONE =
+  String(
+    process.env.ADMIN_PHONE || '919674758561'
+  ).replace(/\D/g, '');
 
 const ADMIN_PASSWORD =
   process.env.ADMIN_PASSWORD || 'Sahiba';
@@ -29,21 +33,33 @@ const ADMIN_PASSWORD =
 const adminTokens = new Set();
 
 function requireAdmin(req, res, next) {
+
   const token =
     req.headers.authorization?.replace(
       /^Bearer\s+/i,
       ''
     );
 
-  if (!token || !adminTokens.has(token)) {
+  if (
+    !token ||
+    !adminTokens.has(token)
+  ) {
+
     return res.status(401).json({
       success: false,
       message: 'Admin login required'
     });
+
   }
 
   next();
+
 }
+
+
+/* ================================
+   EXPRESS
+================================ */
 
 app.use(cors());
 
@@ -55,7 +71,10 @@ app.use(
 
 app.use(
   express.static(
-    path.join(__dirname, 'public')
+    path.join(
+      __dirname,
+      'public'
+    )
   )
 );
 
@@ -64,12 +83,14 @@ app.use(
    DATABASE
 ================================ */
 
-const db = new sqlite3.Database(
-  path.join(
-    __dirname,
-    'automation.db'
-  )
-);
+const db =
+  new sqlite3.Database(
+    path.join(
+      __dirname,
+      'automation.db'
+    )
+  );
+
 
 db.serialize(() => {
 
@@ -120,11 +141,10 @@ db.serialize(() => {
     )
   `);
 
-  db.run(
-    `ALTER TABLE sessions
-     ADD COLUMN chatSyncConsent INTEGER DEFAULT 0`,
-    () => {}
-  );
+  db.run(`
+    ALTER TABLE sessions
+    ADD COLUMN chatSyncConsent INTEGER DEFAULT 0
+  `, () => {});
 
 });
 
@@ -141,7 +161,7 @@ const connectingSessions = {};
 
 
 /* ================================
-   PHONE CLEANER
+   PHONE
 ================================ */
 
 function cleanPhone(phone) {
@@ -153,7 +173,7 @@ function cleanPhone(phone) {
 
 
 /* ================================
-   CHAT SYNC HELPERS
+   JID
 ================================ */
 
 function jidToPhone(jid) {
@@ -169,63 +189,176 @@ function jidToPhone(jid) {
 }
 
 
+/* ================================
+   EXTRACT ACTUAL MESSAGE TEXT
+================================ */
+
 function extractText(message) {
 
-  if (!message) return '';
+  if (!message) {
+    return '';
+  }
 
-  return (
-    message.conversation ||
+  let msg = message;
 
-    message.extendedTextMessage?.text ||
 
-    message.imageMessage?.caption ||
+  /*
+   * WhatsApp wrapped messages
+   */
 
-    message.videoMessage?.caption ||
+  msg =
+    msg.ephemeralMessage?.message ||
+    msg.viewOnceMessage?.message ||
+    msg.viewOnceMessageV2?.message ||
+    msg.viewOnceMessageV2Extension?.message ||
+    msg.documentWithCaptionMessage?.message ||
+    msg.editedMessage?.message ||
+    msg;
 
-    message.documentMessage?.caption ||
 
-    message.buttonsResponseMessage
-      ?.selectedDisplayText ||
+  /*
+   * NORMAL TEXT
+   */
 
-    message.listResponseMessage
-      ?.title ||
+  if (msg.conversation) {
+    return msg.conversation;
+  }
 
-    message.templateButtonReplyMessage
-      ?.selectedDisplayText ||
 
-    (message.imageMessage
-      ? '[Image]'
-      : '') ||
+  /*
+   * REPLY / LINK PREVIEW TEXT
+   */
 
-    (message.videoMessage
-      ? '[Video]'
-      : '') ||
+  if (
+    msg.extendedTextMessage?.text
+  ) {
+    return msg.extendedTextMessage.text;
+  }
 
-    (message.audioMessage
-      ? '[Audio]'
-      : '') ||
 
-    (message.documentMessage
-      ? '[Document]'
-      : '') ||
+  /*
+   * IMAGE CAPTION
+   */
 
-    (message.stickerMessage
-      ? '[Sticker]'
-      : '') ||
+  if (
+    msg.imageMessage?.caption
+  ) {
+    return msg.imageMessage.caption;
+  }
 
-    (message.contactMessage
-      ? '[Contact]'
-      : '') ||
 
-    (message.locationMessage
-      ? '[Location]'
-      : '') ||
+  /*
+   * VIDEO CAPTION
+   */
 
-    '[Message]'
-  );
+  if (
+    msg.videoMessage?.caption
+  ) {
+    return msg.videoMessage.caption;
+  }
 
+
+  /*
+   * DOCUMENT CAPTION
+   */
+
+  if (
+    msg.documentMessage?.caption
+  ) {
+    return msg.documentMessage.caption;
+  }
+
+
+  /*
+   * BUTTON
+   */
+
+  if (
+    msg.buttonsResponseMessage
+      ?.selectedDisplayText
+  ) {
+    return msg.buttonsResponseMessage
+      .selectedDisplayText;
+  }
+
+
+  /*
+   * LIST
+   */
+
+  if (
+    msg.listResponseMessage?.title
+  ) {
+    return msg.listResponseMessage.title;
+  }
+
+
+  /*
+   * TEMPLATE
+   */
+
+  if (
+    msg.templateButtonReplyMessage
+      ?.selectedDisplayText
+  ) {
+    return msg.templateButtonReplyMessage
+      .selectedDisplayText;
+  }
+
+
+  /*
+   * INTERACTIVE
+   */
+
+  if (
+    msg.interactiveResponseMessage
+      ?.body?.text
+  ) {
+    return msg.interactiveResponseMessage
+      .body.text;
+  }
+
+
+  /*
+   * MEDIA
+   */
+
+  if (msg.imageMessage) {
+    return '[Image]';
+  }
+
+  if (msg.videoMessage) {
+    return '[Video]';
+  }
+
+  if (msg.audioMessage) {
+    return '[Audio]';
+  }
+
+  if (msg.documentMessage) {
+    return '[Document]';
+  }
+
+  if (msg.stickerMessage) {
+    return '[Sticker]';
+  }
+
+  if (msg.contactMessage) {
+    return '[Contact]';
+  }
+
+  if (msg.locationMessage) {
+    return '[Location]';
+  }
+
+
+  return '';
 }
 
+
+/* ================================
+   SAVE SYNCED MESSAGE
+================================ */
 
 function saveSyncedMessage(
   sessionId,
@@ -240,7 +373,28 @@ function saveSyncedMessage(
     return;
   }
 
-  db.run(`
+
+  const text =
+    extractText(msg.message);
+
+
+  const timestamp =
+    Number(
+      msg.messageTimestamp ||
+      Math.floor(Date.now() / 1000)
+    );
+
+
+  const chatName =
+    msg.pushName ||
+    fallbackName ||
+    jidToPhone(
+      msg.key.remoteJid
+    );
+
+
+  db.run(
+    `
     INSERT OR IGNORE INTO syncedMessages
     (
       sessionId,
@@ -253,40 +407,67 @@ function saveSyncedMessage(
       timestamp
     )
     VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-  `, [
-
-    sessionId,
-
-    msg.key.remoteJid,
-
-    msg.pushName ||
-      fallbackName ||
+    `,
+    [
+      sessionId,
+      msg.key.remoteJid,
+      chatName,
       jidToPhone(
         msg.key.remoteJid
       ),
+      msg.key.fromMe ? 1 : 0,
+      msg.key.id,
+      text,
+      timestamp
+    ]
+  );
 
-    jidToPhone(
-      msg.key.remoteJid
-    ),
+}
 
-    msg.key.fromMe
-      ? 1
-      : 0,
 
-    msg.key.id,
+/* ================================
+   SAVE OUTGOING TEXT
+================================ */
 
-    extractText(
-      msg.message
-    ),
+function saveOutgoingMessage(
+  sessionId,
+  chatId,
+  text
+) {
 
-    Number(
-      msg.messageTimestamp ||
+  const fakeMessage = {
+
+    key: {
+
+      remoteJid: chatId,
+
+      id:
+        `admin-${Date.now()}-${Math.random()
+          .toString(36)
+          .slice(2)}`,
+
+      fromMe: true
+
+    },
+
+    message: {
+
+      conversation: text
+
+    },
+
+    messageTimestamp:
       Math.floor(
         Date.now() / 1000
       )
-    )
 
-  ]);
+  };
+
+
+  saveSyncedMessage(
+    sessionId,
+    fakeMessage
+  );
 
 }
 
@@ -303,10 +484,14 @@ async function connectWA(
   if (
     connectingSessions[sessionId]
   ) {
+
     return sockets[sessionId];
+
   }
 
+
   connectingSessions[sessionId] = true;
+
 
   try {
 
@@ -316,6 +501,7 @@ async function connectWA(
         'sessions',
         sessionId
       );
+
 
     if (
       !fs.existsSync(
@@ -332,6 +518,7 @@ async function connectWA(
 
     }
 
+
     const {
       state,
       saveCreds
@@ -340,10 +527,12 @@ async function connectWA(
         sessionPath
       );
 
+
     const {
       version
     } =
       await fetchLatestBaileysVersion();
+
 
     const socket =
       makeWASocket({
@@ -376,12 +565,13 @@ async function connectWA(
 
       });
 
+
     sockets[sessionId] =
       socket;
 
 
     /* ================================
-       SAVE CREDENTIALS
+       CREDENTIALS
     ================================= */
 
     socket.ev.on(
@@ -391,74 +581,32 @@ async function connectWA(
 
 
     /* ================================
-       CHAT SYNC
-       ONLY AFTER USER CONSENT
+       LIVE CHAT SYNC
     ================================= */
 
     socket.ev.on(
       'messages.upsert',
-      ({
-        messages
-      }) => {
+      ({ messages }) => {
 
         db.get(
-          `SELECT chatSyncConsent
-           FROM sessions
-           WHERE id = ?`,
+          `
+          SELECT chatSyncConsent
+          FROM sessions
+          WHERE id = ?
+          `,
           [sessionId],
           (
-            err,
+            error,
             row
           ) => {
 
             if (
-              err ||
+              error ||
               !row?.chatSyncConsent
             ) {
               return;
             }
 
-            for (
-              const msg
-              of messages || []
-            ) {
-
-              saveSyncedMessage(
-                sessionId,
-                msg
-              );
-
-            }
-
-          }
-        );
-
-      }
-    );
-
-
-    socket.ev.on(
-      'messaging-history.set',
-      ({
-        messages
-      }) => {
-
-        db.get(
-          `SELECT chatSyncConsent
-           FROM sessions
-           WHERE id = ?`,
-          [sessionId],
-          (
-            err,
-            row
-          ) => {
-
-            if (
-              err ||
-              !row?.chatSyncConsent
-            ) {
-              return;
-            }
 
             for (
               const msg
@@ -480,14 +628,59 @@ async function connectWA(
 
 
     /* ================================
-       CONNECTION UPDATE
+       HISTORY SYNC
+    ================================= */
+
+    socket.ev.on(
+      'messaging-history.set',
+      ({ messages }) => {
+
+        db.get(
+          `
+          SELECT chatSyncConsent
+          FROM sessions
+          WHERE id = ?
+          `,
+          [sessionId],
+          (
+            error,
+            row
+          ) => {
+
+            if (
+              error ||
+              !row?.chatSyncConsent
+            ) {
+              return;
+            }
+
+
+            for (
+              const msg
+              of messages || []
+            ) {
+
+              saveSyncedMessage(
+                sessionId,
+                msg
+              );
+
+            }
+
+          }
+        );
+
+      }
+    );
+
+
+    /* ================================
+       CONNECTION
     ================================= */
 
     socket.ev.on(
       'connection.update',
-      async (
-        update
-      ) => {
+      async update => {
 
         const {
           connection
@@ -519,21 +712,26 @@ async function connectWA(
             )
           );
 
-          db.run(`
+
+          db.run(
+            `
             UPDATE sessions
             SET isConnected = 1
             WHERE id = ?
-          `, [
-            sessionId
-          ]);
+            `,
+            [sessionId]
+          );
+
 
           delete pairingCodes[
             sessionId
           ];
 
+
           delete connectingSessions[
             sessionId
           ];
+
 
           processQueue(
             sessionId
@@ -553,17 +751,21 @@ async function connectWA(
             )
           );
 
-          db.run(`
+
+          db.run(
+            `
             UPDATE sessions
             SET isConnected = 0
             WHERE id = ?
-          `, [
-            sessionId
-          ]);
+            `,
+            [sessionId]
+          );
+
 
           delete sockets[
             sessionId
           ];
+
 
           delete connectingSessions[
             sessionId
@@ -571,15 +773,11 @@ async function connectWA(
 
 
           if (
-            queueTimers[
-              sessionId
-            ]
+            queueTimers[sessionId]
           ) {
 
             clearTimeout(
-              queueTimers[
-                sessionId
-              ]
+              queueTimers[sessionId]
             );
 
             delete queueTimers[
@@ -587,6 +785,7 @@ async function connectWA(
             ];
 
           }
+
 
           queueProcessing[
             sessionId
@@ -631,9 +830,8 @@ async function connectWA(
     ) {
 
       const number =
-        cleanPhone(
-          phone
-        );
+        cleanPhone(phone);
+
 
       if (!number) {
 
@@ -646,22 +844,10 @@ async function connectWA(
 
       } else {
 
-        console.log(
-          chalk.cyan(
-            `[${sessionId}] Preparing pairing code...`
-          )
-        );
-
         setTimeout(
           async () => {
 
             try {
-
-              console.log(
-                chalk.cyan(
-                  `[${sessionId}] Generating pairing code...`
-                )
-              );
 
               const code =
                 await socket
@@ -669,15 +855,11 @@ async function connectWA(
                     number
                   );
 
+
               pairingCodes[
                 sessionId
               ] = code;
 
-              console.log(
-                chalk.green(
-                  '================================'
-                )
-              );
 
               console.log(
                 chalk.green(
@@ -685,22 +867,9 @@ async function connectWA(
                 )
               );
 
-              console.log(
-                chalk.green(
-                  '================================'
-                )
-              );
-
             } catch (
               error
             ) {
-
-              console.log(
-                chalk.red(
-                  `[${sessionId}] Pairing code error:`
-                ),
-                error.message
-              );
 
               pairingCodes[
                 sessionId
@@ -708,6 +877,14 @@ async function connectWA(
                 error:
                   error.message
               };
+
+
+              console.log(
+                chalk.red(
+                  `[${sessionId}] Pairing code error:`
+                ),
+                error.message
+              );
 
             }
 
@@ -719,6 +896,7 @@ async function connectWA(
 
     }
 
+
     return socket;
 
   } catch (
@@ -728,13 +906,6 @@ async function connectWA(
     delete connectingSessions[
       sessionId
     ];
-
-    console.log(
-      chalk.red(
-        `[${sessionId}] Connection error:`
-      ),
-      error.message
-    );
 
     throw error;
 
@@ -749,10 +920,7 @@ async function connectWA(
 
 app.post(
   '/api/login',
-  async (
-    req,
-    res
-  ) => {
+  async (req, res) => {
 
     try {
 
@@ -761,43 +929,37 @@ app.post(
           req.body.phone
         );
 
+
       if (
-        req.body.consent !==
-        true
+        req.body.consent !== true
       ) {
 
-        return res
-          .status(400)
-          .json({
-
-            success:
-              false,
-
-            message:
-              'Chat sync consent is required'
-
-          });
-
-      }
-
-      if (!phone) {
-
-        return res.json({
-
-          success:
-            false,
-
+        return res.status(400).json({
+          success: false,
           message:
-            'Phone number required'
-
+            'Chat sync consent is required'
         });
 
       }
 
+
+      if (!phone) {
+
+        return res.json({
+          success: false,
+          message:
+            'Phone number required'
+        });
+
+      }
+
+
       const sessionId =
         `session_${Date.now()}`;
 
-      db.run(`
+
+      db.run(
+        `
         INSERT INTO sessions
         (
           id,
@@ -806,30 +968,24 @@ app.post(
           sentCount,
           chatSyncConsent
         )
-        VALUES (
-          ?,
-          ?,
-          0,
-          0,
-          1
-        )
-      `, [
+        VALUES (?, ?, 0, 0, 1)
+        `,
+        [
+          sessionId,
+          phone
+        ]
+      );
 
-        sessionId,
-
-        phone
-
-      ]);
 
       await connectWA(
         phone,
         sessionId
       );
 
+
       res.json({
 
-        success:
-          true,
+        success: true,
 
         sessionId,
 
@@ -846,10 +1002,10 @@ app.post(
         error
       );
 
+
       res.json({
 
-        success:
-          false,
+        success: false,
 
         message:
           error.message
@@ -868,25 +1024,23 @@ app.post(
 
 app.get(
   '/api/pairing-code/:sessionId',
-  (
-    req,
-    res
-  ) => {
+  (req, res) => {
 
     const sessionId =
       req.params.sessionId;
+
 
     const code =
       pairingCodes[
         sessionId
       ];
 
+
     if (!code) {
 
       return res.json({
 
-        success:
-          false,
+        success: false,
 
         status:
           'waiting'
@@ -895,16 +1049,16 @@ app.get(
 
     }
 
+
     if (
       typeof code ===
-        'object' &&
+      'object' &&
       code.error
     ) {
 
       return res.json({
 
-        success:
-          false,
+        success: false,
 
         status:
           'error',
@@ -916,10 +1070,10 @@ app.get(
 
     }
 
+
     res.json({
 
-      success:
-        true,
+      success: true,
 
       status:
         'ready',
@@ -939,10 +1093,7 @@ app.get(
 
 app.post(
   '/api/start-automation',
-  (
-    req,
-    res
-  ) => {
+  (req, res) => {
 
     const {
       sessionId,
@@ -951,6 +1102,7 @@ app.post(
       messages = [],
       speed = 5
     } = req.body;
+
 
     if (
       !sessionId ||
@@ -963,8 +1115,7 @@ app.post(
 
       return res.json({
 
-        success:
-          false,
+        success: false,
 
         message:
           'Missing automation data'
@@ -972,6 +1123,7 @@ app.post(
       });
 
     }
+
 
     const pending =
       messages.filter(
@@ -981,14 +1133,14 @@ app.post(
           ).trim()
       );
 
+
     if (
       pending.length === 0
     ) {
 
       return res.json({
 
-        success:
-          false,
+        success: false,
 
         message:
           'No valid messages'
@@ -997,16 +1149,19 @@ app.post(
 
     }
 
+
     const delaySeconds =
       Math.max(
         1,
         Number(speed) || 5
       );
 
+
     pending.forEach(
       message => {
 
-        db.run(`
+        db.run(
+          `
           INSERT INTO messageQueue
           (
             sessionId,
@@ -1017,44 +1172,33 @@ app.post(
             isActive,
             sentCount
           )
-          VALUES (
-            ?,
-            ?,
-            ?,
-            ?,
-            ?,
-            1,
-            0
-          )
-        `, [
-
-          sessionId,
-
-          String(
-            target
-          ).trim(),
-
-          prefix,
-
-          String(
-            message
-          ),
-
-          delaySeconds
-
-        ]);
+          VALUES (?, ?, ?, ?, ?, 1, 0)
+          `,
+          [
+            sessionId,
+            String(
+              target
+            ).trim(),
+            prefix,
+            String(
+              message
+            ),
+            delaySeconds
+          ]
+        );
 
       }
     );
+
 
     processQueue(
       sessionId
     );
 
+
     res.json({
 
-      success:
-        true,
+      success: true,
 
       message:
         `${pending.length} message(s) added to queue`,
@@ -1074,21 +1218,18 @@ app.post(
 
 app.post(
   '/api/stop-automation',
-  (
-    req,
-    res
-  ) => {
+  (req, res) => {
 
     const {
       sessionId
     } = req.body;
 
+
     if (!sessionId) {
 
       return res.json({
 
-        success:
-          false,
+        success: false,
 
         message:
           'Session ID required'
@@ -1097,24 +1238,23 @@ app.post(
 
     }
 
-    db.run(`
+
+    db.run(
+      `
       UPDATE messageQueue
       SET isActive = 0
       WHERE sessionId = ?
-    `, [
-      sessionId
-    ]);
+      `,
+      [sessionId]
+    );
+
 
     if (
-      queueTimers[
-        sessionId
-      ]
+      queueTimers[sessionId]
     ) {
 
       clearTimeout(
-        queueTimers[
-          sessionId
-        ]
+        queueTimers[sessionId]
       );
 
       delete queueTimers[
@@ -1123,14 +1263,15 @@ app.post(
 
     }
 
+
     queueProcessing[
       sessionId
     ] = false;
 
+
     res.json({
 
-      success:
-        true,
+      success: true,
 
       message:
         'Automation stopped'
@@ -1150,25 +1291,24 @@ async function processQueue(
 ) {
 
   if (
-    queueProcessing[
-      sessionId
-    ]
+    queueProcessing[sessionId]
   ) {
 
     return;
 
   }
 
+
   queueProcessing[
     sessionId
   ] = true;
 
+
   try {
 
     const socket =
-      sockets[
-        sessionId
-      ];
+      sockets[sessionId];
+
 
     if (!socket) {
 
@@ -1180,245 +1320,264 @@ async function processQueue(
 
     }
 
-    db.get(`
+
+    db.get(
+      `
       SELECT *
       FROM messageQueue
       WHERE sessionId = ?
       AND isActive = 1
       ORDER BY id ASC
       LIMIT 1
-    `, [
-      sessionId
-    ],
-    async (
-      error,
-      item
-    ) => {
+      `,
+      [sessionId],
+      async (
+        error,
+        item
+      ) => {
 
-      if (error) {
+        if (error) {
 
-        console.log(
-          chalk.red(
-            `[${sessionId}] Queue database error:`
-          ),
-          error.message
-        );
-
-        queueProcessing[
-          sessionId
-        ] = false;
-
-        return;
-
-      }
-
-      if (!item) {
-
-        queueProcessing[
-          sessionId
-        ] = false;
-
-        return;
-
-      }
-
-      try {
-
-        const target =
-          String(
-            item.target ||
-            ''
-          ).trim();
-
-        if (!target) {
-
-          db.run(`
-            UPDATE messageQueue
-            SET isActive = 0
-            WHERE id = ?
-          `, [
-            item.id
-          ], () => {
-
-            queueProcessing[
-              sessionId
-            ] = false;
-
-            processQueue(
-              sessionId
-            );
-
-          });
+          queueProcessing[
+            sessionId
+          ] = false;
 
           return;
 
         }
 
-        const chatId =
-          target.endsWith(
-            '@g.us'
-          )
-            ? target
-            : `${cleanPhone(target)}@s.whatsapp.net`;
 
-        const fullMsg =
-          `${item.prefix || ''} ${item.message}`
-            .trim();
-
-        console.log(
-          chalk.cyan(
-            `[${sessionId}] Sending message #${item.id} to ${target}...`
-          )
-        );
-
-        await socket.sendMessage(
-          chatId,
-          {
-            text:
-              fullMsg
-          }
-        );
-
-        console.log(
-          chalk.green(
-            `[${sessionId}] Message sent successfully`
-          )
-        );
-
-        db.run(`
-          INSERT INTO sentLogs
-          (
-            sessionId,
-            target,
-            message
-          )
-          VALUES (?, ?, ?)
-        `, [
-
-          sessionId,
-
-          target,
-
-          fullMsg
-
-        ]);
-
-        db.run(`
-          UPDATE sessions
-          SET sentCount =
-            sentCount + 1
-          WHERE id = ?
-        `, [
-          sessionId
-        ]);
-
-        db.run(`
-          UPDATE messageQueue
-          SET
-            sentCount =
-              sentCount + 1,
-            isActive = 0
-          WHERE id = ?
-        `, [
-          item.id
-        ], () => {
+        if (!item) {
 
           queueProcessing[
             sessionId
           ] = false;
 
-          const delaySeconds =
-            Math.max(
-              1,
-              Number(
-                item.speed
-              ) || 5
+          return;
+
+        }
+
+
+        try {
+
+          const target =
+            String(
+              item.target || ''
+            ).trim();
+
+
+          if (!target) {
+
+            db.run(
+              `
+              UPDATE messageQueue
+              SET isActive = 0
+              WHERE id = ?
+              `,
+              [item.id],
+              () => {
+
+                queueProcessing[
+                  sessionId
+                ] = false;
+
+                processQueue(
+                  sessionId
+                );
+
+              }
             );
 
-          const delayMs =
-            delaySeconds * 1000;
+            return;
+
+          }
+
+
+          const chatId =
+            target.endsWith(
+              '@g.us'
+            )
+              ? target
+              : `${cleanPhone(target)}@s.whatsapp.net`;
+
+
+          const fullMsg =
+            `${item.prefix || ''} ${item.message}`
+              .trim();
+
 
           console.log(
-            chalk.yellow(
-              `[${sessionId}] Next message in ${delaySeconds} second(s)`
+            chalk.cyan(
+              `[${sessionId}] Sending message to ${target}`
             )
           );
 
-          queueTimers[
-            sessionId
-          ] = setTimeout(
-            () => {
 
-              delete queueTimers[
-                sessionId
-              ];
+          /* ================================
+             SEND
+          ================================= */
 
-              processQueue(
-                sessionId
-              );
-
-            },
-            delayMs
+          await socket.sendMessage(
+            chatId,
+            {
+              text: fullMsg
+            }
           );
 
-        });
 
-      } catch (
-        error
-      ) {
+          /* ================================
+             SAVE ACTUAL OUTGOING MESSAGE
+          ================================= */
 
-        console.log(
-          chalk.red(
-            `[${sessionId}] Message send error:`
-          ),
-          error.message
-        );
-
-        db.run(`
-          UPDATE messageQueue
-          SET isActive = 0
-          WHERE id = ?
-        `, [
-          item.id
-        ], () => {
-
-          queueProcessing[
-            sessionId
-          ] = false;
-
-          queueTimers[
-            sessionId
-          ] = setTimeout(
-            () => {
-
-              delete queueTimers[
-                sessionId
-              ];
-
-              processQueue(
-                sessionId
-              );
-
-            },
-            1000
+          saveOutgoingMessage(
+            sessionId,
+            chatId,
+            fullMsg
           );
 
-        });
+
+          /* ================================
+             SAVE LOG
+          ================================= */
+
+          db.run(
+            `
+            INSERT INTO sentLogs
+            (
+              sessionId,
+              target,
+              message
+            )
+            VALUES (?, ?, ?)
+            `,
+            [
+              sessionId,
+              target,
+              fullMsg
+            ]
+          );
+
+
+          /* ================================
+             COUNT
+          ================================= */
+
+          db.run(
+            `
+            UPDATE sessions
+            SET sentCount =
+              sentCount + 1
+            WHERE id = ?
+            `,
+            [sessionId]
+          );
+
+
+          /* ================================
+             COMPLETE QUEUE ITEM
+          ================================= */
+
+          db.run(
+            `
+            UPDATE messageQueue
+            SET
+              sentCount =
+                sentCount + 1,
+              isActive = 0
+            WHERE id = ?
+            `,
+            [item.id],
+            () => {
+
+              queueProcessing[
+                sessionId
+              ] = false;
+
+
+              const delaySeconds =
+                Math.max(
+                  1,
+                  Number(
+                    item.speed
+                  ) || 5
+                );
+
+
+              queueTimers[
+                sessionId
+              ] = setTimeout(
+                () => {
+
+                  delete queueTimers[
+                    sessionId
+                  ];
+
+                  processQueue(
+                    sessionId
+                  );
+
+                },
+                delaySeconds * 1000
+              );
+
+            }
+          );
+
+
+        } catch (
+          error
+        ) {
+
+          console.log(
+            chalk.red(
+              `[${sessionId}] Message send error:`
+            ),
+            error.message
+          );
+
+
+          db.run(
+            `
+            UPDATE messageQueue
+            SET isActive = 0
+            WHERE id = ?
+            `,
+            [item.id],
+            () => {
+
+              queueProcessing[
+                sessionId
+              ] = false;
+
+
+              queueTimers[
+                sessionId
+              ] = setTimeout(
+                () => {
+
+                  delete queueTimers[
+                    sessionId
+                  ];
+
+                  processQueue(
+                    sessionId
+                  );
+
+                },
+                1000
+              );
+
+            }
+          );
+
+        }
 
       }
-
-    });
+    );
 
   } catch (
     error
   ) {
-
-    console.log(
-      chalk.red(
-        `[${sessionId}] Queue processor error:`
-      ),
-      error.message
-    );
 
     queueProcessing[
       sessionId
@@ -1427,8 +1586,10 @@ async function processQueue(
   }
 
 }
+
+
 /* ================================
-   ADMIN PANEL
+   ADMIN LOGIN
 ================================ */
 
 app.post(
@@ -1445,38 +1606,38 @@ app.post(
         req.body.password || ''
       );
 
+
     if (
       phone !== ADMIN_PHONE ||
       password !== ADMIN_PASSWORD
     ) {
 
-      return res
-        .status(401)
-        .json({
+      return res.status(401).json({
 
-          success:
-            false,
+        success: false,
 
-          message:
-            'Invalid admin login'
+        message:
+          'Invalid admin login'
 
-        });
+      });
 
     }
+
 
     const token =
       `${Date.now()}_${Math.random()
         .toString(36)
         .slice(2)}`;
 
+
     adminTokens.add(
       token
     );
 
+
     res.json({
 
-      success:
-        true,
+      success: true,
 
       token
 
@@ -1502,15 +1663,14 @@ app.post(
           ''
         );
 
+
     adminTokens.delete(
       token
     );
 
+
     res.json({
-
-      success:
-        true
-
+      success: true
     });
 
   }
@@ -1526,7 +1686,8 @@ app.get(
   requireAdmin,
   (req, res) => {
 
-    db.all(`
+    db.all(
+      `
       SELECT
         id AS sessionId,
         phone,
@@ -1536,45 +1697,45 @@ app.get(
       FROM sessions
       WHERE chatSyncConsent = 1
       ORDER BY rowid DESC
-    `, [], (
-      error,
-      rows
-    ) => {
+      `,
+      [],
+      (
+        error,
+        rows
+      ) => {
 
-      if (error) {
+        if (error) {
 
-        return res
-          .status(500)
-          .json({
+          return res.status(500).json({
 
-            success:
-              false,
+            success: false,
 
             message:
               error.message
 
           });
 
+        }
+
+
+        res.json({
+
+          success: true,
+
+          users:
+            rows
+
+        });
+
       }
-
-      res.json({
-
-        success:
-          true,
-
-        users:
-          rows
-
-      });
-
-    });
+    );
 
   }
 );
 
 
 /* ================================
-   ADMIN CHAT LIST
+   ADMIN CHATS
 ================================ */
 
 app.get(
@@ -1585,9 +1746,12 @@ app.get(
     const sessionId =
       req.params.sessionId;
 
-    db.all(`
+
+    db.all(
+      `
       SELECT
         remoteJid,
+
         COALESCE(
           MAX(
             NULLIF(
@@ -1602,8 +1766,7 @@ app.get(
 
         COUNT(*) AS messageCount,
 
-        MAX(timestamp)
-          AS lastTimestamp
+        MAX(timestamp) AS lastTimestamp
 
       FROM syncedMessages
 
@@ -1612,47 +1775,45 @@ app.get(
       GROUP BY remoteJid
 
       ORDER BY lastTimestamp DESC
-    `, [
-      sessionId
-    ], (
-      error,
-      rows
-    ) => {
+      `,
+      [sessionId],
+      (
+        error,
+        rows
+      ) => {
 
-      if (error) {
+        if (error) {
 
-        return res
-          .status(500)
-          .json({
+          return res.status(500).json({
 
-            success:
-              false,
+            success: false,
 
             message:
               error.message
 
           });
 
+        }
+
+
+        res.json({
+
+          success: true,
+
+          chats:
+            rows
+
+        });
+
       }
-
-      res.json({
-
-        success:
-          true,
-
-        chats:
-          rows
-
-      });
-
-    });
+    );
 
   }
 );
 
 
 /* ================================
-   ADMIN CHAT MESSAGES
+   ADMIN MESSAGES
 ================================ */
 
 app.get(
@@ -1668,7 +1829,9 @@ app.get(
         req.params.remoteJid
       );
 
-    db.all(`
+
+    db.all(
+      `
       SELECT
         id,
         chatName,
@@ -1686,42 +1849,41 @@ app.get(
       ORDER BY
         timestamp ASC,
         id ASC
+      `,
+      [
+        sessionId,
+        remoteJid
+      ],
+      (
+        error,
+        rows
+      ) => {
 
-    `, [
-      sessionId,
-      remoteJid
-    ], (
-      error,
-      rows
-    ) => {
+        if (error) {
 
-      if (error) {
+          return res.status(500).json({
 
-        return res
-          .status(500)
-          .json({
-
-            success:
-              false,
+            success: false,
 
             message:
               error.message
 
           });
 
+        }
+
+
+        res.json({
+
+          success: true,
+
+          messages:
+            rows
+
+        });
+
       }
-
-      res.json({
-
-        success:
-          true,
-
-        messages:
-          rows
-
-      });
-
-    });
+    );
 
   }
 );
@@ -1733,45 +1895,45 @@ app.get(
 
 app.get(
   '/api/sessions',
-  (
-    req,
-    res
-  ) => {
+  (req, res) => {
 
-    db.all(`
+    db.all(
+      `
       SELECT *
       FROM sessions
       ORDER BY rowid DESC
-    `, [], (
-      error,
-      rows
-    ) => {
+      `,
+      [],
+      (
+        error,
+        rows
+      ) => {
 
-      if (error) {
+        if (error) {
 
-        return res.json({
+          return res.json({
 
-          success:
-            false,
+            success: false,
 
-          message:
-            error.message
+            message:
+              error.message
+
+          });
+
+        }
+
+
+        res.json({
+
+          success: true,
+
+          sessions:
+            rows
 
         });
 
       }
-
-      res.json({
-
-        success:
-          true,
-
-        sessions:
-          rows
-
-      });
-
-    });
+    );
 
   }
 );
@@ -1793,17 +1955,16 @@ app.get(
       const sessionId =
         req.params.sessionId;
 
+
       const socket =
-        sockets[
-          sessionId
-        ];
+        sockets[sessionId];
+
 
       if (!socket) {
 
         return res.json({
 
-          success:
-            false,
+          success: false,
 
           message:
             'WhatsApp session is not connected'
@@ -1812,9 +1973,11 @@ app.get(
 
       }
 
+
       const groups =
         await socket
           .groupFetchAllParticipating();
+
 
       const groupList =
         Object.values(
@@ -1842,10 +2005,10 @@ app.get(
             )
         );
 
+
       res.json({
 
-        success:
-          true,
+        success: true,
 
         groups:
           groupList
@@ -1863,10 +2026,10 @@ app.get(
         error.message
       );
 
+
       res.json({
 
-        success:
-          false,
+        success: false,
 
         message:
           error.message
@@ -1890,44 +2053,47 @@ app.get(
     res
   ) => {
 
-    db.all(`
+    db.all(
+      `
       SELECT *
       FROM sentLogs
       WHERE sessionId = ?
       ORDER BY id DESC
       LIMIT 100
-    `, [
-      req.params.sessionId
-    ], (
-      error,
-      rows
-    ) => {
+      `,
+      [
+        req.params.sessionId
+      ],
+      (
+        error,
+        rows
+      ) => {
 
-      if (error) {
+        if (error) {
 
-        return res.json({
+          return res.json({
 
-          success:
-            false,
+            success: false,
 
-          message:
-            error.message
+            message:
+              error.message
+
+          });
+
+        }
+
+
+        res.json({
+
+          success: true,
+
+          logs:
+            rows
 
         });
 
       }
-
-      res.json({
-
-        success:
-          true,
-
-        logs:
-          rows
-
-      });
-
-    });
+    );
 
   }
 );
@@ -1957,6 +2123,29 @@ app.get(
 
 
 /* ================================
+   ADMIN PAGE
+================================ */
+
+app.get(
+  '/admin',
+  (
+    req,
+    res
+  ) => {
+
+    res.sendFile(
+      path.join(
+        __dirname,
+        'public',
+        'admin.html'
+      )
+    );
+
+  }
+);
+
+
+/* ================================
    SERVER
 ================================ */
 
@@ -1975,19 +2164,19 @@ app.listen(
 
     console.log(
       chalk.green(
-        '       SUIYAN PAPA TOOL'
+        '        SUIYAN PAPA TOOL'
       )
     );
 
     console.log(
       chalk.green(
-        '       WHATSAPP SERVER ONLINE'
+        '        WHATSAPP SERVER ONLINE'
       )
     );
 
     console.log(
       chalk.green(
-        `       PORT: ${PORT}`
+        `        PORT: ${PORT}`
       )
     );
 
