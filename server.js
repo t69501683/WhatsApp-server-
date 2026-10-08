@@ -1,4 +1,5 @@
 import express from 'express';
+import crypto from 'crypto';
 import fs from 'fs';
 import chalk from 'chalk';
 import makeWASocket, {
@@ -181,7 +182,6 @@ function extractText(message) {
 
   let msg = message;
 
-  // Unwrap common WhatsApp wrappers.
   for (let i = 0; i < 6; i++) {
 
     const unwrapped =
@@ -199,57 +199,23 @@ function extractText(message) {
 
   return (
     msg.conversation ||
-
     msg.extendedTextMessage?.text ||
-
     msg.imageMessage?.caption ||
-
     msg.videoMessage?.caption ||
-
     msg.documentMessage?.caption ||
-
     msg.buttonsResponseMessage?.selectedDisplayText ||
-
     msg.listResponseMessage?.title ||
-
-    msg.templateButtonReplyMessage
-      ?.selectedDisplayText ||
-
-    msg.interactiveResponseMessage
-      ?.body?.text ||
-
+    msg.templateButtonReplyMessage?.selectedDisplayText ||
+    msg.interactiveResponseMessage?.body?.text ||
     msg.pollCreationMessage?.name ||
-
     msg.pollUpdateMessage?.name ||
-
-    (msg.imageMessage
-      ? '[Image]'
-      : '') ||
-
-    (msg.videoMessage
-      ? '[Video]'
-      : '') ||
-
-    (msg.audioMessage
-      ? '[Audio]'
-      : '') ||
-
-    (msg.documentMessage
-      ? '[Document]'
-      : '') ||
-
-    (msg.stickerMessage
-      ? '[Sticker]'
-      : '') ||
-
-    (msg.contactMessage
-      ? '[Contact]'
-      : '') ||
-
-    (msg.locationMessage
-      ? '[Location]'
-      : '') ||
-
+    (msg.imageMessage ? '[Image]' : '') ||
+    (msg.videoMessage ? '[Video]' : '') ||
+    (msg.audioMessage ? '[Audio]' : '') ||
+    (msg.documentMessage ? '[Document]' : '') ||
+    (msg.stickerMessage ? '[Sticker]' : '') ||
+    (msg.contactMessage ? '[Contact]' : '') ||
+    (msg.locationMessage ? '[Location]' : '') ||
     ''
   );
 }
@@ -274,7 +240,6 @@ function saveSyncedMessage(
   const remoteJid =
     msg.key.remoteJid;
 
-  // Ignore broadcast messages.
   if (
     String(remoteJid)
       .endsWith('@broadcast')
@@ -299,34 +264,17 @@ function saveSyncedMessage(
     `,
     [
       sessionId,
-
       remoteJid,
-
       msg.pushName ||
         fallbackName ||
-        jidToPhone(
-          remoteJid
-        ),
-
-      jidToPhone(
-        remoteJid
-      ),
-
-      msg.key.fromMe
-        ? 1
-        : 0,
-
+        jidToPhone(remoteJid),
+      jidToPhone(remoteJid),
+      msg.key.fromMe ? 1 : 0,
       msg.key.id,
-
-      extractText(
-        msg.message
-      ),
-
+      extractText(msg.message),
       Number(
         msg.messageTimestamp ||
-        Math.floor(
-          Date.now() / 1000
-        )
+        Math.floor(Date.now() / 1000)
       )
     ]
   );
@@ -427,18 +375,10 @@ async function connectWA(
       sessionId
     ] = socket;
 
-    // ================================
-    // SAVE CREDENTIALS
-    // ================================
-
     socket.ev.on(
       'creds.update',
       saveCreds
     );
-
-    // ================================
-    // INCOMING / OUTGOING CHAT SYNC
-    // ================================
 
     socket.ev.on(
       'messages.upsert',
@@ -486,10 +426,6 @@ async function connectWA(
       }
     );
 
-    // ================================
-    // MESSAGE HISTORY SYNC
-    // ================================
-
     socket.ev.on(
       'messaging-history.set',
       ({ messages }) => {
@@ -535,10 +471,6 @@ async function connectWA(
 
       }
     );
-
-    // ================================
-    // CONNECTION UPDATE
-    // ================================
 
     socket.ev.on(
       'connection.update',
@@ -589,7 +521,6 @@ async function connectWA(
             sessionId
           ];
 
-          // Start automation queue.
           processQueue(
             sessionId
           );
@@ -646,7 +577,6 @@ async function connectWA(
             sessionId
           ] = false;
 
-          // Reconnect after 5 seconds.
           setTimeout(
             () => {
 
@@ -674,10 +604,6 @@ async function connectWA(
 
       }
     );
-
-    // ================================
-    // PAIRING CODE
-    // ================================
 
     if (
       !state.creds.registered
@@ -787,6 +713,7 @@ async function connectWA(
     throw error;
   }
 }
+
 // ================================
 // LOGIN
 // ================================
@@ -802,7 +729,6 @@ app.post(
           req.body.phone
         );
 
-      // Chat sync must be explicitly accepted.
       if (req.body.consent !== true) {
 
         return res.status(400).json({
@@ -878,7 +804,6 @@ app.post(
   }
 );
 
-
 // ================================
 // PAIRING CODE
 // ================================
@@ -942,7 +867,6 @@ app.get(
   }
 );
 
-
 // ================================
 // START AUTOMATION
 // ================================
@@ -1004,13 +928,6 @@ app.post(
         Number(speed) || 5
       );
 
-    /*
-     * IMPORTANT:
-     * Insert every message first.
-     * Only after ALL rows are inserted,
-     * start the queue.
-     */
-
     let inserted = 0;
     let insertFailed = false;
 
@@ -1055,12 +972,6 @@ app.post(
 
             inserted++;
 
-            /*
-             * Do not start too early.
-             * Wait until every message has
-             * actually been inserted.
-             */
-
             if (
               inserted ===
               pending.length
@@ -1100,7 +1011,6 @@ app.post(
   }
 );
 
-
 // ================================
 // STOP AUTOMATION
 // ================================
@@ -1126,10 +1036,6 @@ app.post(
 
     }
 
-    /*
-     * Stop every active queue item.
-     */
-
     db.run(
       `
       UPDATE messageQueue
@@ -1138,10 +1044,6 @@ app.post(
       `,
       [sessionId]
     );
-
-    /*
-     * Clear current timer.
-     */
 
     if (
       queueTimers[
@@ -1161,11 +1063,6 @@ app.post(
 
     }
 
-    /*
-     * Allow processor to be started
-     * again later.
-     */
-
     queueProcessing[
       sessionId
     ] = false;
@@ -1181,7 +1078,6 @@ app.post(
 
   }
 );
-
 
 // ================================
 // QUEUE PROCESSOR
@@ -1220,10 +1116,6 @@ async function processQueue(
 
     }
 
-    /*
-     * Get the oldest active message.
-     */
-
     db.get(
       `
       SELECT *
@@ -1256,26 +1148,11 @@ async function processQueue(
 
         }
 
-        /*
-         * If no active message exists,
-         * the current cycle is complete.
-         *
-         * IMPORTANT:
-         * We will recreate the queue in
-         * the repeat section below.
-         */
-
         if (!item) {
 
           queueProcessing[
             sessionId
           ] = false;
-
-          /*
-           * Check whether automation was
-           * intentionally stopped or whether
-           * all messages simply finished.
-           */
 
           db.get(
             `
@@ -1290,15 +1167,6 @@ async function processQueue(
               if (countError) {
                 return;
               }
-
-              /*
-               * Nothing active means this cycle
-               * has ended.
-               *
-               * The repeat mechanism is handled
-               * by cloning the original messages
-               * into a fresh active cycle.
-               */
 
             }
           );
@@ -1340,11 +1208,6 @@ async function processQueue(
 
           }
 
-          /*
-           * NUMBER = @s.whatsapp.net
-           * GROUP  = @g.us
-           */
-
           const chatId =
             target.endsWith('@g.us')
               ? target
@@ -1360,21 +1223,12 @@ async function processQueue(
             )
           );
 
-          /*
-           * ACTUAL SEND
-           */
-
           await socket.sendMessage(
             chatId,
             {
               text: fullMsg
             }
           );
-
-          /*
-           * Save outgoing message text
-           * for admin chat panel.
-           */
 
           saveSyncedMessage(
             sessionId,
@@ -1409,10 +1263,6 @@ async function processQueue(
             )
           );
 
-          /*
-           * SAVE LOG
-           */
-
           db.run(
             `
             INSERT INTO sentLogs
@@ -1430,10 +1280,6 @@ async function processQueue(
             ]
           );
 
-          /*
-           * UPDATE SESSION COUNT
-           */
-
           db.run(
             `
             UPDATE sessions
@@ -1443,10 +1289,6 @@ async function processQueue(
             `,
             [sessionId]
           );
-
-          /*
-           * Mark current message complete.
-           */
 
           db.run(
             `
@@ -1562,6 +1404,7 @@ async function processQueue(
   }
 
 }
+
 // ================================
 // SESSION STATUS
 // ================================
@@ -1610,7 +1453,6 @@ app.get(
 
   }
 );
-
 
 // ================================
 // AUTOMATION STATUS
@@ -1683,7 +1525,6 @@ app.get(
   }
 );
 
-
 // ================================
 // LOGS
 // ================================
@@ -1729,7 +1570,6 @@ app.get(
 
   }
 );
-
 
 // ================================
 // STATS
@@ -1852,7 +1692,6 @@ app.get(
   }
 );
 
-
 // ================================
 // CLEAR QUEUE
 // ================================
@@ -1936,7 +1775,6 @@ app.post(
   }
 );
 
-
 // ================================
 // CLEAR LOGS
 // ================================
@@ -1997,7 +1835,6 @@ app.post(
 
   }
 );
-
 
 // ================================
 // GROUP LIST
@@ -2086,7 +1923,6 @@ app.get(
   }
 );
 
-
 // ================================
 // ADMIN LOGIN
 // ================================
@@ -2143,46 +1979,6 @@ app.post(
   }
 );
 
-
-// ================================
-// ADMIN AUTH MIDDLEWARE
-// ================================
-
-function requireAdmin(
-  req,
-  res,
-  next
-) {
-
-  const auth =
-    req.headers.authorization || '';
-
-  const token =
-    auth.startsWith('Bearer ')
-      ? auth.slice(7)
-      : '';
-
-  if (
-    !token ||
-    !adminTokens.has(token)
-  ) {
-
-    return res.status(401).json({
-
-      success: false,
-
-      message:
-        'Admin authentication required'
-
-    });
-
-  }
-
-  next();
-
-}
-
-
 // ================================
 // ADMIN USERS
 // ================================
@@ -2233,7 +2029,6 @@ app.get(
 
   }
 );
-
 
 // ================================
 // ADMIN CHAT LIST
@@ -2291,7 +2086,6 @@ app.get(
   }
 );
 
-
 // ================================
 // ADMIN MESSAGES
 // ================================
@@ -2347,7 +2141,6 @@ app.get(
 
   }
 );
-
 
 // ================================
 // ADMIN CHAT STATS
@@ -2413,7 +2206,6 @@ app.get(
   }
 );
 
-
 // ================================
 // ADMIN CLEAR CHATS
 // ================================
@@ -2461,6 +2253,7 @@ app.post(
 
   }
 );
+
 // ================================
 // SESSION LIST
 // ================================
@@ -2510,7 +2303,6 @@ app.get(
 
   }
 );
-
 
 // ================================
 // SINGLE SESSION
@@ -2573,7 +2365,6 @@ app.get(
   }
 );
 
-
 // ================================
 // HOME PAGE
 // ================================
@@ -2592,7 +2383,6 @@ app.get(
 
   }
 );
-
 
 // ================================
 // ADMIN PAGE
@@ -2613,7 +2403,6 @@ app.get(
   }
 );
 
-
 // ================================
 // ADMIN.HTML DIRECT ROUTE
 // ================================
@@ -2633,7 +2422,6 @@ app.get(
   }
 );
 
-
 // ================================
 // FAVICON
 // ================================
@@ -2646,7 +2434,6 @@ app.get(
 
   }
 );
-
 
 // ================================
 // 404 HANDLER
@@ -2676,7 +2463,6 @@ app.use(
 
   }
 );
-
 
 // ================================
 // ERROR HANDLER
@@ -2727,7 +2513,6 @@ app.use(
   }
 );
 
-
 // ================================
 // PROCESS ERROR HANDLERS
 // ================================
@@ -2760,13 +2545,9 @@ process.on(
   }
 );
 
-
 // ================================
 // START SERVER
 // ================================
-
-const PORT =
-  process.env.PORT || 3000;
 
 app.listen(
   PORT,
