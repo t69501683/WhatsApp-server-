@@ -1,2406 +1,2956 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>SUIYAN PAPA TOOL</title>
 
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700;800;900&family=Share+Tech+Mono&display=swap');
-
 *{
- box-sizing:border-box;
- margin:0;
- padding:0
+  box-sizing:border-box;
+  margin:0;
+  padding:0;
 }
 
 :root{
- --cyan:#00f6ff;
- --pink:#ff008c;
- --green:#00ff88;
- --purple:#9d00ff;
- --blue:#0066ff;
- --red:#ff1744;
- --bg:#020207;
+  --bg:#020504;
+  --panel:#050a08;
+  --panel2:#07100c;
+  --green:#48ff91;
+  --green2:#19b866;
+  --dim:#587768;
+  --line:#123a27;
+  --danger:#ff4545;
+  --text:#b9d9c6;
 }
 
-html{
- scroll-behavior:smooth
+html,body{
+  width:100%;
+  min-height:100%;
+  background:var(--bg);
+  color:var(--text);
+  font-family:"Courier New",monospace;
 }
 
 body{
- min-height:100vh;
- color:#fff;
- background:
- radial-gradient(circle at 15% 15%,rgba(0,246,255,.12),transparent 25%),
- radial-gradient(circle at 85% 20%,rgba(255,0,140,.12),transparent 25%),
- radial-gradient(circle at 50% 100%,rgba(157,0,255,.13),transparent 30%),
- #020207;
- font-family:'Share Tech Mono',monospace;
- overflow-x:hidden;
+  overflow-x:hidden;
 }
 
-body:before{
- content:"";
- position:fixed;
- inset:0;
- pointer-events:none;
- background:
- linear-gradient(rgba(0,246,255,.035) 1px,transparent 1px),
- linear-gradient(90deg,rgba(255,0,140,.035) 1px,transparent 1px);
- background-size:40px 40px;
- mask-image:linear-gradient(to bottom,black,transparent);
- z-index:0;
+/* MATRIX BACKGROUND */
+#matrix{
+  position:fixed;
+  inset:0;
+  width:100%;
+  height:100%;
+  opacity:.10;
+  pointer-events:none;
+  z-index:0;
 }
 
-body:after{
- content:"";
- position:fixed;
- inset:0;
- pointer-events:none;
- background:repeating-linear-gradient(
-  0deg,
-  rgba(255,255,255,.025) 0px,
-  rgba(255,255,255,.025) 1px,
-  transparent 2px,
-  transparent 5px
- );
- z-index:100;
- opacity:.35;
+/* CRT EFFECT */
+.scanlines{
+  position:fixed;
+  inset:0;
+  pointer-events:none;
+  z-index:20;
+  background:
+    repeating-linear-gradient(
+      to bottom,
+      rgba(255,255,255,.018) 0px,
+      rgba(255,255,255,.018) 1px,
+      transparent 2px,
+      transparent 4px
+    );
 }
 
-.particle{
- position:fixed;
- width:3px;
- height:3px;
- border-radius:50%;
- background:var(--cyan);
- box-shadow:0 0 12px var(--cyan);
- animation:float 8s linear infinite;
- opacity:.6;
+.vignette{
+  position:fixed;
+  inset:0;
+  pointer-events:none;
+  z-index:19;
+  background:radial-gradient(
+    ellipse at center,
+    transparent 35%,
+    rgba(0,0,0,.75) 100%
+  );
 }
 
-.p1{left:8%;top:80%;animation-delay:0s}
-.p2{left:20%;top:40%;animation-delay:2s}
-.p3{left:78%;top:75%;animation-delay:1s}
-.p4{left:91%;top:30%;animation-delay:4s}
-.p5{left:55%;top:20%;animation-delay:3s}
-.p6{left:35%;top:90%;animation-delay:5s}
-
-@keyframes float{
- 0%{
-  transform:translateY(0);
-  opacity:0
- }
- 20%{
-  opacity:.8
- }
- 100%{
-  transform:translateY(-100vh);
-  opacity:0
- }
+.app{
+  position:relative;
+  z-index:2;
+  width:100%;
+  max-width:1500px;
+  margin:auto;
+  padding:14px;
 }
 
-.container{
- position:relative;
- z-index:2;
- width:94%;
- max-width:1250px;
- margin:auto;
- padding:30px 0 60px;
-}
-
+/* TOP BAR */
 .topbar{
- display:flex;
- justify-content:space-between;
- align-items:center;
- margin-bottom:20px;
- color:#777;
- font-size:11px;
- letter-spacing:2px;
+  min-height:52px;
+  border:1px solid var(--line);
+  background:rgba(3,8,6,.94);
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+  padding:9px 13px;
+  box-shadow:
+    0 0 25px rgba(0,255,110,.04),
+    inset 0 0 20px rgba(0,255,110,.025);
 }
 
-.online{
- color:var(--green);
- text-shadow:0 0 10px var(--green);
+.prompt{
+  color:var(--green);
+  font-weight:bold;
+  letter-spacing:.5px;
 }
 
-.online:before{
- content:"● ";
- animation:blink 1s infinite;
+.status{
+  display:flex;
+  align-items:center;
+  gap:16px;
+  font-size:11px;
+  color:var(--dim);
 }
 
-@keyframes blink{
- 50%{
-  opacity:.2
- }
+.status-dot{
+  display:inline-block;
+  width:7px;
+  height:7px;
+  background:var(--green);
+  box-shadow:0 0 9px var(--green);
+  margin-right:5px;
 }
 
-.logo-wrap{
- text-align:center;
- position:relative;
- margin:20px 0 8px;
+.audio-btn{
+  border:1px solid #1d5939;
+  background:#06110b;
+  color:var(--green);
+  padding:7px 11px;
+  font-family:inherit;
+  font-size:10px;
+  cursor:pointer;
+  letter-spacing:1px;
+}
+
+.audio-btn:hover{
+  background:#0a1b12;
+  box-shadow:0 0 12px rgba(72,255,145,.15);
+}
+
+/* HERO */
+.hero{
+  padding:35px 12px 25px;
+  text-align:center;
 }
 
 .logo{
- position:relative;
- display:inline-block;
- font-family:'Orbitron',sans-serif;
- font-size:clamp(30px,7vw,78px);
- font-weight:900;
- letter-spacing:5px;
- text-transform:uppercase;
- color:#fff;
- text-shadow:
- 0 0 5px #fff,
- 0 0 12px var(--cyan),
- 0 0 25px var(--cyan),
- 0 0 45px var(--pink);
- animation:logoPulse 2.5s ease-in-out infinite;
-}
-
-.logo:before,
-.logo:after{
- content:"SUIYAN PAPA TOOL";
- position:absolute;
- left:0;
- top:0;
- width:100%;
- overflow:hidden;
- pointer-events:none;
-}
-
-.logo:before{
- color:var(--cyan);
- z-index:-1;
- transform:translate(3px,-2px);
- clip-path:polygon(0 0,100% 0,100% 42%,0 42%);
- animation:glitch1 2s infinite;
-}
-
-.logo:after{
- color:var(--pink);
- z-index:-2;
- transform:translate(-3px,2px);
- clip-path:polygon(0 62%,100% 62%,100% 100%,0 100%);
- animation:glitch2 1.7s infinite;
-}
-
-@keyframes logoPulse{
- 50%{
+  font-size:clamp(34px,7vw,82px);
+  font-weight:900;
+  letter-spacing:7px;
+  color:#baffd1;
   text-shadow:
-   0 0 8px #fff,
-   0 0 20px var(--cyan),
-   0 0 45px var(--pink),
-   0 0 80px var(--purple);
- }
-}
-
-@keyframes glitch1{
- 0%,90%,100%{
-  transform:translate(3px,-2px)
- }
- 92%{
-  transform:translate(-8px,2px)
- }
- 94%{
-  transform:translate(6px,-1px)
- }
- 96%{
-  transform:translate(-2px,3px)
- }
-}
-
-@keyframes glitch2{
- 0%,88%,100%{
-  transform:translate(-3px,2px)
- }
- 90%{
-  transform:translate(8px,-2px)
- }
- 93%{
-  transform:translate(-5px,1px)
- }
+    0 0 5px #3cff86,
+    0 0 18px rgba(72,255,145,.35),
+    2px 0 0 rgba(255,0,0,.15),
+    -2px 0 0 rgba(0,255,255,.12);
+  animation:glitch 3.5s infinite;
 }
 
 .subtitle{
- text-align:center;
- color:var(--cyan);
- font-family:'Orbitron',sans-serif;
- font-size:11px;
- letter-spacing:5px;
- text-shadow:0 0 12px var(--cyan);
+  margin-top:10px;
+  color:#4d8865;
+  font-size:11px;
+  letter-spacing:4px;
 }
 
-.system-line{
- margin:18px auto 30px;
- max-width:700px;
- display:flex;
- align-items:center;
- gap:12px;
- color:#666;
- font-size:10px;
+.hero-line{
+  width:min(700px,90%);
+  height:1px;
+  margin:20px auto 0;
+  background:linear-gradient(
+    90deg,
+    transparent,
+    #1d6c43,
+    transparent
+  );
 }
 
-.system-line span{
- height:1px;
- flex:1;
- background:linear-gradient(
-  90deg,
-  transparent,
-  var(--cyan),
-  transparent
- );
+@keyframes glitch{
+  0%,92%,100%{
+    transform:translate(0);
+  }
+  93%{
+    transform:translate(-2px,1px);
+  }
+  94%{
+    transform:translate(2px,-1px);
+  }
+  95%{
+    transform:translate(-1px,0);
+  }
 }
 
-.system-line b{
- color:var(--green);
- letter-spacing:2px;
+/* GRID */
+.main-grid{
+  display:grid;
+  grid-template-columns:minmax(0,1.5fr) minmax(280px,.8fr);
+  gap:12px;
 }
 
-.grid{
- display:grid;
- grid-template-columns:repeat(2,1fr);
- gap:22px;
+.left,
+.right{
+  display:flex;
+  flex-direction:column;
+  gap:12px;
 }
 
+/* PANELS */
 .panel{
- position:relative;
- background:linear-gradient(
-  145deg,
-  rgba(8,14,25,.88),
-  rgba(2,3,10,.94)
- );
- border:1px solid rgba(0,246,255,.35);
- padding:25px;
- overflow:hidden;
- box-shadow:
- 0 0 20px rgba(0,246,255,.08),
- inset 0 0 30px rgba(0,246,255,.025);
- backdrop-filter:blur(10px);
+  border:1px solid var(--line);
+  background:
+    linear-gradient(
+      135deg,
+      rgba(7,17,12,.96),
+      rgba(2,6,4,.97)
+    );
+  position:relative;
+  box-shadow:
+    inset 0 0 30px rgba(0,255,110,.025),
+    0 0 20px rgba(0,0,0,.45);
 }
 
-.panel:before{
- content:"";
- position:absolute;
- inset:0;
- border:1px solid transparent;
- background:linear-gradient(
-  120deg,
-  var(--cyan),
-  transparent 25%,
-  transparent 70%,
-  var(--pink)
- ) border-box;
- mask:linear-gradient(#000 0 0) padding-box,
-       linear-gradient(#000 0 0);
- mask-composite:exclude;
- opacity:.45;
- pointer-events:none;
+.panel::before{
+  content:"";
+  position:absolute;
+  top:-1px;
+  left:12px;
+  width:42px;
+  height:2px;
+  background:var(--green2);
+  box-shadow:0 0 9px rgba(72,255,145,.35);
 }
 
-.panel:after{
- content:"";
- position:absolute;
- top:0;
- left:-100%;
- width:50%;
- height:100%;
- background:linear-gradient(
-  90deg,
-  transparent,
-  rgba(0,246,255,.08),
-  transparent
- );
- transform:skewX(-20deg);
- animation:sweep 5s infinite;
-}
-
-@keyframes sweep{
- 0%{
-  left:-100%
- }
- 30%,100%{
-  left:150%
- }
-}
-
-.panel:hover{
- box-shadow:
- 0 0 30px rgba(0,246,255,.14),
- inset 0 0 35px rgba(255,0,140,.03);
-}
-
-.corner{
- position:absolute;
- width:12px;
- height:12px;
- border-color:var(--cyan);
- border-style:solid;
-}
-
-.c1{
- top:0;
- left:0;
- border-width:2px 0 0 2px
-}
-
-.c2{
- top:0;
- right:0;
- border-width:2px 2px 0 0
-}
-
-.c3{
- bottom:0;
- left:0;
- border-width:0 0 2px 2px
-}
-
-.c4{
- bottom:0;
- right:0;
- border-width:0 2px 2px 0
+.panel-head{
+  min-height:42px;
+  padding:11px 13px;
+  border-bottom:1px solid #0d271b;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:10px;
 }
 
 .panel-title{
- display:flex;
- align-items:center;
- gap:10px;
- margin-bottom:20px;
- font-family:'Orbitron',sans-serif;
- font-size:13px;
- letter-spacing:2px;
- color:#fff;
+  color:#87c99f;
+  font-size:12px;
+  letter-spacing:1.5px;
+  font-weight:bold;
 }
 
-.panel-title .icon{
- color:var(--cyan);
- text-shadow:0 0 10px var(--cyan);
+.panel-id{
+  color:#345542;
+  font-size:9px;
 }
 
-.panel-title .tag{
- margin-left:auto;
- color:var(--pink);
- font-size:8px;
- border:1px solid var(--pink);
- padding:4px 7px;
- box-shadow:0 0 8px rgba(255,0,140,.2);
+.panel-body{
+  padding:13px;
 }
 
-.input-wrap{
- position:relative;
- margin-bottom:14px;
+/* TERMINAL LABELS */
+.label{
+  display:block;
+  color:#4e8a65;
+  font-size:10px;
+  margin-bottom:6px;
+  text-transform:uppercase;
+  letter-spacing:1px;
 }
 
-.input-wrap label{
- display:block;
- color:#555;
- font-size:9px;
- margin-bottom:6px;
- letter-spacing:1px;
+.label::before{
+  content:"./";
+  color:#2d6947;
 }
 
+/* INPUTS */
 input,
 textarea,
 select{
- width:100%;
- border:1px solid #172936;
- outline:none;
- background:rgba(0,0,0,.65);
- color:#fff;
- padding:13px 14px;
- font-family:'Share Tech Mono',monospace;
- font-size:12px;
- transition:.25s;
-}
-
-select{
- cursor:pointer;
- appearance:auto;
-}
-
-select option{
- background:#020207;
- color:#fff;
-}
-
-input::placeholder,
-textarea::placeholder{
- color:#39414a;
+  width:100%;
+  background:#020604;
+  color:#baf8cc;
+  border:1px solid #173c29;
+  outline:none;
+  font-family:inherit;
+  font-size:12px;
+  padding:11px;
+  border-radius:0;
 }
 
 input:focus,
 textarea:focus,
 select:focus{
- border-color:var(--cyan);
- box-shadow:
- 0 0 0 1px rgba(0,246,255,.1),
- 0 0 18px rgba(0,246,255,.12);
+  border-color:#287a4d;
+  box-shadow:0 0 12px rgba(72,255,145,.08);
 }
 
 textarea{
- resize:vertical;
- min-height:130px;
+  min-height:135px;
+  resize:vertical;
+}
+
+select{
+  cursor:pointer;
+}
+
+option{
+  background:#050a07;
+  color:#baf8cc;
+}
+
+/* ROWS */
+.row{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:10px;
+}
+
+.field{
+  margin-bottom:12px;
+}
+
+/* BUTTONS */
+button{
+  font-family:inherit;
 }
 
 .btn{
- width:100%;
- padding:14px;
- border:1px solid var(--cyan);
- background:rgba(0,246,255,.025);
- color:var(--cyan);
- font-family:'Orbitron',sans-serif;
- font-size:10px;
- font-weight:700;
- letter-spacing:2px;
- cursor:pointer;
- position:relative;
- overflow:hidden;
- transition:.25s;
-}
-
-.btn:before{
- content:"";
- position:absolute;
- top:0;
- left:-100%;
- width:100%;
- height:100%;
- background:linear-gradient(
-  90deg,
-  transparent,
-  rgba(0,246,255,.25),
-  transparent
- );
- transition:.4s;
-}
-
-.btn:hover:before{
- left:100%;
+  border:1px solid #1b5937;
+  background:#06100a;
+  color:#74d995;
+  padding:10px 13px;
+  cursor:pointer;
+  font-size:10px;
+  letter-spacing:1px;
+  text-transform:uppercase;
+  transition:.15s;
 }
 
 .btn:hover{
- color:#000;
- background:var(--cyan);
- box-shadow:
- 0 0 15px var(--cyan),
- 0 0 40px rgba(0,246,255,.4);
+  background:#0a1b11;
+  color:#a9ffc2;
+  border-color:#3a9c61;
+  box-shadow:0 0 14px rgba(72,255,145,.12);
 }
 
-.btn.stop{
- border-color:var(--pink);
- color:var(--pink);
- margin-top:10px;
+.btn:active{
+  transform:translateY(1px);
 }
 
-.btn.stop:hover{
- background:var(--pink);
- box-shadow:
- 0 0 15px var(--pink),
- 0 0 40px rgba(255,0,140,.4);
+.btn-primary{
+  border-color:#2c8b53;
+  color:#a4ffbd;
 }
 
-#groupTargetWrap{
- display:none;
+.btn-danger{
+  border-color:#713030;
+  color:#ff7777;
 }
 
-.group-refresh{
- margin-top:8px;
- padding:10px;
- font-size:9px;
+.btn-danger:hover{
+  border-color:#b54242;
+  background:#160707;
+  box-shadow:0 0 14px rgba(255,50,50,.1);
 }
 
-#pairBox{
- display:none;
- margin-top:18px;
- padding:18px;
- text-align:center;
- background:
- radial-gradient(
-  circle,
-  rgba(0,246,255,.08),
-  transparent 70%
- );
- border:1px solid var(--cyan);
- box-shadow:
- inset 0 0 25px rgba(0,246,255,.04),
- 0 0 20px rgba(0,246,255,.1);
+.button-row{
+  display:flex;
+  gap:8px;
+  flex-wrap:wrap;
 }
 
-.pair-title{
- color:#777;
- font-size:9px;
- letter-spacing:3px;
+/* AUTH */
+.pair-box{
+  margin-top:10px;
+  min-height:55px;
+  border:1px dashed #24563a;
+  background:#020705;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  padding:12px;
+  text-align:center;
+  color:#77d994;
+  letter-spacing:3px;
+  font-weight:bold;
+  font-size:18px;
 }
 
-#pairingCode{
- margin-top:12px;
- font-family:'Orbitron',sans-serif;
- font-size:30px;
- font-weight:800;
- letter-spacing:8px;
- color:#fff;
- text-shadow:
- 0 0 8px #fff,
- 0 0 20px var(--cyan),
- 0 0 35px var(--cyan);
+.hidden{
+  display:none!important;
 }
 
-.pair-help{
- margin-top:12px;
- color:#555;
- font-size:9px;
- line-height:1.7;
+/* TARGET */
+.target-switch{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  margin-bottom:12px;
 }
 
-.status-box{
- margin-top:15px;
- display:flex;
- align-items:center;
- gap:10px;
- border:1px solid #172936;
- padding:11px;
- font-size:10px;
- color:#777;
+.target-switch button{
+  border:1px solid #163b27;
+  background:#030806;
+  color:#4d785d;
+  padding:9px;
+  cursor:pointer;
+  font-family:inherit;
+  font-size:10px;
 }
 
-.status-dot{
- width:8px;
- height:8px;
- border-radius:50%;
- background:var(--green);
- box-shadow:0 0 10px var(--green);
- animation:blink 1.2s infinite;
+.target-switch button.active{
+  background:#0a1b11;
+  color:#8ff5aa;
+  border-color:#328452;
 }
 
-.owner{
- margin-top:14px;
- text-align:center;
- color:#444;
- font-size:9px;
- letter-spacing:2px;
+/* SLIDER */
+.range-wrap{
+  display:flex;
+  align-items:center;
+  gap:10px;
 }
 
-.owner strong{
- color:var(--pink);
- text-shadow:0 0 10px var(--pink);
+input[type="range"]{
+  padding:0;
+  accent-color:#3ddc78;
 }
 
-.stats{
- display:grid;
- grid-template-columns:repeat(3,1fr);
- gap:10px;
+.range-value{
+  min-width:50px;
+  color:#72cf91;
+  font-size:11px;
+  text-align:right;
 }
 
-.stat{
- padding:18px 8px;
- text-align:center;
- background:rgba(0,0,0,.4);
- border:1px solid #172936;
- position:relative;
-}
-
-.stat:hover{
- border-color:var(--cyan);
- box-shadow:0 0 15px rgba(0,246,255,.08);
-}
-
-.stat-number{
- font-family:'Orbitron',sans-serif;
- font-size:24px;
- color:#fff;
- text-shadow:0 0 12px var(--cyan);
-}
-
-.stat-label{
- margin-top:7px;
- font-size:8px;
- color:#555;
- letter-spacing:1px;
-}
-
-.monitor{
- margin-top:20px;
- border-top:1px solid #172936;
- padding-top:15px;
-}
-
-.monitor-row{
- display:flex;
- justify-content:space-between;
- padding:8px 0;
- border-bottom:1px solid rgba(255,255,255,.03);
- font-size:10px;
-}
-
-.monitor-row span:first-child{
- color:#555;
-}
-
-.good{
- color:var(--green)!important;
- text-shadow:0 0 8px var(--green)
-}
-
-.warn{
- color:#ffe600!important;
- text-shadow:0 0 8px #ffe600
-}
-
+/* TERMINAL */
 .terminal{
- grid-column:1/-1;
- position:relative;
- border:1px solid #1a2630;
- background:#010204;
- box-shadow:
- inset 0 0 40px rgba(0,246,255,.025),
- 0 0 25px rgba(0,0,0,.7);
+  height:265px;
+  overflow:auto;
+  background:#010302;
+  border:1px solid #10291c;
+  padding:12px;
+  font-size:10px;
+  line-height:1.65;
 }
 
-.terminal-head{
- display:flex;
- align-items:center;
- gap:7px;
- padding:12px 15px;
- border-bottom:1px solid #17232d;
- background:rgba(255,255,255,.015);
+.terminal::-webkit-scrollbar{
+  width:5px;
 }
 
-.terminal-head span{
- width:8px;
- height:8px;
- border-radius:50%;
+.terminal::-webkit-scrollbar-thumb{
+  background:#153c28;
 }
 
-.t-red{
- background:#ff1744;
- box-shadow:0 0 8px #ff1744
+.term-line{
+  color:#5fae78;
+  word-break:break-word;
 }
 
-.t-yellow{
- background:#ffe600;
- box-shadow:0 0 8px #ffe600
+.term-line .time{
+  color:#31583f;
 }
 
-.t-green{
- background:#00ff88;
- box-shadow:0 0 8px #00ff88
+.term-line .ok{
+  color:#62d986;
 }
 
-.terminal-title{
- margin-left:8px;
- color:#555;
- font-size:9px;
- letter-spacing:2px;
+.term-line .warn{
+  color:#d5ad57;
 }
 
-#terminal{
- height:190px;
- overflow-y:auto;
- padding:15px;
- font-size:10px;
- line-height:1.9;
+.term-line .err{
+  color:#ed6464;
 }
 
-#terminal::-webkit-scrollbar{
- width:4px;
+/* METRICS */
+.metric-grid{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:8px;
 }
 
-#terminal::-webkit-scrollbar-thumb{
- background:var(--cyan);
+.metric{
+  min-height:80px;
+  border:1px solid #102f20;
+  background:#030806;
+  padding:11px;
 }
 
-.log-green{
- color:var(--green)
+.metric-name{
+  color:#40654e;
+  font-size:9px;
+  letter-spacing:1px;
 }
 
-.log-cyan{
- color:var(--cyan)
+.metric-value{
+  margin-top:8px;
+  color:#8df6a9;
+  font-size:22px;
+  font-weight:bold;
 }
 
-.log-red{
- color:var(--red)
+.metric-sub{
+  margin-top:4px;
+  color:#31513d;
+  font-size:8px;
 }
 
-.log-yellow{
- color:#ffe600
+/* NETWORK */
+.network{
+  height:220px;
+  border:1px solid #102f20;
+  background:
+    radial-gradient(circle at center,rgba(20,100,55,.08),transparent 55%),
+    #020604;
+  position:relative;
+  overflow:hidden;
 }
 
+.network::before{
+  content:"";
+  position:absolute;
+  inset:0;
+  background:
+    linear-gradient(rgba(60,140,90,.035) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(60,140,90,.035) 1px,transparent 1px);
+  background-size:22px 22px;
+}
+
+.node{
+  position:absolute;
+  width:7px;
+  height:7px;
+  background:#54e887;
+  box-shadow:0 0 10px #54e887;
+}
+
+.node.n1{left:18%;top:28%}
+.node.n2{left:49%;top:20%}
+.node.n3{left:76%;top:34%}
+.node.n4{left:30%;top:67%}
+.node.n5{left:66%;top:72%}
+.node.n6{left:49%;top:48%}
+
+.net-line{
+  position:absolute;
+  height:1px;
+  background:linear-gradient(90deg,transparent,#2e9d5c,transparent);
+  transform-origin:left center;
+  opacity:.5;
+}
+
+.l1{width:180px;left:19%;top:30%;transform:rotate(-10deg)}
+.l2{width:190px;left:51%;top:22%;transform:rotate(14deg)}
+.l3{width:170px;left:51%;top:49%;transform:rotate(30deg)}
+.l4{width:180px;left:31%;top:68%;transform:rotate(-25deg)}
+.l5{width:120px;left:30%;top:67%;transform:rotate(-50deg)}
+
+.packet{
+  position:absolute;
+  width:4px;
+  height:4px;
+  background:#b4ffd0;
+  box-shadow:0 0 7px #72ff9a;
+  animation:packetMove 2.8s linear infinite;
+}
+
+.p1{left:20%;top:29%}
+.p2{left:52%;top:23%;animation-delay:.8s}
+.p3{left:34%;top:65%;animation-delay:1.4s}
+
+@keyframes packetMove{
+  from{transform:translate(0,0);opacity:0}
+  15%{opacity:1}
+  85%{opacity:1}
+  to{transform:translate(90px,-35px);opacity:0}
+}
+
+/* TELEMETRY */
+.telemetry{
+  font-size:9px;
+  color:#41634f;
+  line-height:1.8;
+}
+
+.telemetry b{
+  color:#75c58d;
+  font-weight:normal;
+}
+
+/* FOOTER */
 .footer{
- text-align:center;
- margin-top:25px;
- color:#333;
- font-size:8px;
- letter-spacing:3px;
+  padding:18px 5px 8px;
+  text-align:center;
+  color:#294535;
+  font-size:9px;
+  letter-spacing:1px;
 }
 
-.footer b{
- color:#555;
+/* RESPONSIVE */
+@media(max-width:900px){
+  .main-grid{
+    grid-template-columns:1fr;
+  }
+
+  .right{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    align-items:start;
+  }
+
+  .right .panel:nth-child(3){
+    grid-column:1 / -1;
+  }
 }
 
-@media(max-width:700px){
+@media(max-width:650px){
+  .app{
+    padding:8px;
+  }
 
- .container{
-  width:92%;
-  padding-top:20px;
- }
+  .topbar{
+    align-items:flex-start;
+    flex-direction:column;
+  }
 
- .topbar{
-  font-size:8px;
- }
+  .status{
+    width:100%;
+    justify-content:space-between;
+    flex-wrap:wrap;
+  }
 
- .grid{
-  grid-template-columns:1fr;
- }
+  .logo{
+    font-size:30px;
+    letter-spacing:3px;
+  }
 
- .terminal{
-  grid-column:auto;
- }
+  .subtitle{
+    font-size:8px;
+    letter-spacing:2px;
+  }
 
- .logo{
-  letter-spacing:2px;
- }
+  .row{
+    grid-template-columns:1fr;
+  }
 
- .subtitle{
-  letter-spacing:2px;
-  font-size:8px;
- }
+  .right{
+    display:flex;
+  }
 
- .stats{
-  grid-template-columns:repeat(3,1fr);
- }
+  .metric-grid{
+    grid-template-columns:1fr 1fr;
+  }
 
- #pairingCode{
-  font-size:23px;
-  letter-spacing:5px;
- }
+  .terminal{
+    height:220px;
+  }
+
+  .network{
+    height:190px;
+  }
 }
 </style>
 </head>
 
 <body>
 
-<div class="particle p1"></div>
-<div class="particle p2"></div>
-<div class="particle p3"></div>
-<div class="particle p4"></div>
-<div class="particle p5"></div>
-<div class="particle p6"></div>
+<canvas id="matrix"></canvas>
+<div class="scanlines"></div>
+<div class="vignette"></div>
 
-<div class="container">
+<div class="app">
 
-<div class="topbar">
-<span>SYS://SUIYAN_NODE_01</span>
-<span class="online">SYSTEM ONLINE</span>
+  <!-- TOP BAR -->
+  <div class="topbar">
+
+    <div class="prompt">
+      root@SUIYAN:~#
+      <span style="color:#4a6d58">control_terminal</span>
+    </div>
+
+    <div class="status">
+
+      <span>
+        <i class="status-dot"></i>
+        SYSTEM ONLINE
+      </span>
+
+      <span id="clock">00:00:00</span>
+
+      <button
+        class="audio-btn"
+        id="audioBtn"
+        type="button"
+      >
+        [ ACTIVATE AUDIO ]
+      </button>
+
+    </div>
+  </div>
+
+
+  <!-- HERO -->
+  <section class="hero">
+
+    <div class="logo">
+      SUIYAN PAPA TOOL
+    </div>
+
+    <div class="subtitle">
+      WHATSAPP AUTOMATION // SECURE CONTROL INTERFACE
+    </div>
+
+    <div class="hero-line"></div>
+
+  </section>
+
+
+  <div class="main-grid">
+
+    <!-- LEFT SIDE -->
+    <main class="left">
+
+
+      <!-- AUTH PANEL -->
+      <section class="panel">
+
+        <div class="panel-head">
+
+          <div class="panel-title">
+            [01] WHATSAPP AUTHENTICATION
+          </div>
+
+          <div class="panel-id">
+            AUTH_NODE // 0x01
+          </div>
+
+        </div>
+
+        <div class="panel-body">
+
+          <div class="row">
+
+            <div class="field">
+
+              <label class="label">
+                phone number
+              </label>
+
+              <input
+                id="phone"
+                type="text"
+                placeholder="91XXXXXXXXXX"
+                autocomplete="off"
+              >
+
+            </div>
+
+
+            <div class="field">
+
+              <label class="label">
+                session id
+              </label>
+
+              <input
+                id="session"
+                type="text"
+                placeholder="suiyan-session"
+                autocomplete="off"
+              >
+
+            </div>
+
+          </div>
+
+
+          <div class="button-row">
+
+            <button
+              class="btn btn-primary"
+              id="loginBtn"
+              onclick="login()"
+            >
+              [ INITIALIZE SESSION ]
+            </button>
+
+            <button
+              class="btn"
+              onclick="checkCurrentSession()"
+            >
+              [ CHECK STATUS ]
+            </button>
+
+          </div>
+
+
+          <div
+            class="pair-box hidden"
+            id="pairBox"
+          >
+            WAITING FOR PAIRING CODE...
+          </div>
+
+        </div>
+
+      </section>
+
+
+      <!-- TARGET PANEL -->
+      <section class="panel">
+
+        <div class="panel-head">
+
+          <div class="panel-title">
+            [02] TARGET CONTROL
+          </div>
+
+          <div class="panel-id">
+            TARGET_NODE // 0x02
+          </div>
+
+        </div>
+
+
+        <div class="panel-body">
+
+          <div class="target-switch">
+
+            <button
+              id="numberMode"
+              class="active"
+              onclick="toggleTargetType('number')"
+            >
+              NUMBER
+            </button>
+
+            <button
+              id="groupMode"
+              onclick="toggleTargetType('group')"
+            >
+              GROUP
+            </button>
+
+          </div>
+
+
+          <div
+            id="numberTargetWrap"
+            class="field"
+          >
+
+            <label class="label">
+              target number
+            </label>
+
+            <input
+              id="target"
+              type="text"
+              placeholder="91XXXXXXXXXX"
+              autocomplete="off"
+            >
+
+          </div>
+
+
+          <div
+            id="groupTargetWrap"
+            class="field hidden"
+          >
+
+            <label class="label">
+              target group
+            </label>
+
+            <div style="display:flex;gap:7px">
+
+              <select id="groupTarget">
+                <option value="">
+                  -- SELECT GROUP --
+                </option>
+              </select>
+
+              <button
+                class="btn"
+                id="groupRefresh"
+                onclick="loadGroups()"
+              >
+                ↻
+              </button>
+
+            </div>
+
+          </div>
+
+        </div>
+
+      </section>
+
+
+      <!-- MESSAGE ENGINE -->
+      <section class="panel">
+
+        <div class="panel-head">
+
+          <div class="panel-title">
+            [03] MESSAGE ENGINE
+          </div>
+
+          <div class="panel-id">
+            QUEUE_ENGINE // 0x03
+          </div>
+
+        </div>
+
+
+        <div class="panel-body">
+
+          <div class="field">
+
+            <label class="label">
+              command prefix
+            </label>
+
+            <input
+              id="prefix"
+              type="text"
+              placeholder="MESSAGE"
+            >
+
+          </div>
+
+
+          <div class="field">
+
+            <label class="label">
+              message payload
+            </label>
+
+            <textarea
+              id="messages"
+              placeholder="Type your messages here...
+One message per line."
+            ></textarea>
+
+          </div>
+
+
+          <div class="field">
+
+            <label class="label">
+              message file
+            </label>
+
+            <input
+              id="messageFile"
+              type="file"
+              accept=".txt,.csv"
+            >
+
+          </div>
+
+
+          <div class="row">
+
+            <div class="field">
+
+              <label class="label">
+                execution speed
+              </label>
+
+              <div class="range-wrap">
+
+                <input
+                  id="speed"
+                  type="range"
+                  min="1000"
+                  max="30000"
+                  step="500"
+                  value="5000"
+                  oninput="updateSpeedValue()"
+                >
+
+                <span
+                  class="range-value"
+                  id="speedValue"
+                >
+                  5000ms
+                </span>
+
+              </div>
+
+            </div>
+
+
+            <div
+              class="field"
+              style="display:flex;align-items:flex-end"
+            >
+
+              <div class="button-row">
+
+                <button
+                  class="btn btn-primary"
+                  onclick="startAutomation()"
+                >
+                  ▶ EXECUTE
+                </button>
+
+                <button
+                  class="btn btn-danger"
+                  onclick="stopAutomation()"
+                >
+                  ■ ABORT
+                </button>
+
+              </div>
+
+            </div>
+
+          </div>
+
+        </div>
+
+      </section>
+
+
+      <!-- TERMINAL -->
+      <section class="panel">
+
+        <div class="panel-head">
+
+          <div class="panel-title">
+            [04] LIVE TERMINAL
+          </div>
+
+          <div class="panel-id">
+            STDOUT // LIVE
+          </div>
+
+        </div>
+
+        <div class="panel-body">
+
+          <div
+            class="terminal"
+            id="terminal"
+          >
+
+            <div class="term-line">
+              <span class="time">[00:00:00]</span>
+              <span class="ok">
+                system boot sequence initialized
+              </span>
+            </div>
+
+            <div class="term-line">
+              <span class="time">[00:00:00]</span>
+              waiting for operator command...
+            </div>
+
+          </div>
+
+        </div>
+
+      </section>
+
+    </main>
+
+
+    <!-- RIGHT SIDE -->
+    <aside class="right">
+
+
+      <!-- METRICS -->
+      <section class="panel">
+
+        <div class="panel-head">
+
+          <div class="panel-title">
+            SYSTEM METRICS
+          </div>
+
+          <div class="panel-id">
+            LIVE
+          </div>
+
+        </div>
+
+        <div class="panel-body">
+
+          <div class="metric-grid">
+
+            <div class="metric">
+
+              <div class="metric-name">
+                ENGINE
+              </div>
+
+              <div
+                class="metric-value"
+                id="engineStatus"
+              >
+                OFF
+              </div>
+
+              <div
+                class="metric-sub"
+                id="engineText"
+              >
+                standby
+              </div>
+
+            </div>
+
+
+            <div class="metric">
+
+              <div class="metric-name">
+                SESSIONS
+              </div>
+
+              <div
+                class="metric-value"
+                id="activeSessions"
+              >
+                0
+              </div>
+
+              <div class="metric-sub">
+                active nodes
+              </div>
+
+            </div>
+
+
+            <div class="metric">
+
+              <div class="metric-name">
+                SENT
+              </div>
+
+              <div
+                class="metric-value"
+                id="messagesSent"
+              >
+                0
+              </div>
+
+              <div class="metric-sub">
+                packets delivered
+              </div>
+
+            </div>
+
+
+            <div class="metric">
+
+              <div class="metric-name">
+                UPTIME
+              </div>
+
+              <div
+                class="metric-value"
+                id="uptime"
+              >
+                00:00
+              </div>
+
+              <div class="metric-sub">
+                runtime
+              </div>
+
+            </div>
+
+          </div>
+
+        </div>
+
+      </section>
+
+
+      <!-- NETWORK -->
+      <section class="panel">
+
+        <div class="panel-head">
+
+          <div class="panel-title">
+            NETWORK MONITOR
+          </div>
+
+          <div class="panel-id">
+            NODE_MAP
+          </div>
+
+        </div>
+
+        <div class="panel-body">
+
+          <div class="network">
+
+            <div class="node n1"></div>
+            <div class="node n2"></div>
+            <div class="node n3"></div>
+            <div class="node n4"></div>
+            <div class="node n5"></div>
+            <div class="node n6"></div>
+
+            <div class="net-line l1"></div>
+            <div class="net-line l2"></div>
+            <div class="net-line l3"></div>
+            <div class="net-line l4"></div>
+            <div class="net-line l5"></div>
+
+            <div class="packet p1"></div>
+            <div class="packet p2"></div>
+            <div class="packet p3"></div>
+
+          </div>
+
+        </div>
+
+      </section>
+
+
+      <!-- TELEMETRY -->
+      <section class="panel">
+
+        <div class="panel-head">
+
+          <div class="panel-title">
+            TELEMETRY
+          </div>
+
+          <div class="panel-id">
+            SYS_INFO
+          </div>
+
+        </div>
+
+        <div class="panel-body">
+
+          <div class="telemetry">
+
+            <div>
+              HOST:
+              <b id="hostInfo">SUIYAN-NODE</b>
+            </div>
+
+            <div>
+              PROTOCOL:
+              <b>WHATSAPP / BAILEYS</b>
+            </div>
+
+            <div>
+              TRANSPORT:
+              <b>WEBSOCKET</b>
+            </div>
+
+            <div>
+              ENCRYPTION:
+              <b>END-TO-END</b>
+            </div>
+
+            <div>
+              CHANNEL:
+              <b id="channelInfo">STANDBY</b>
+            </div>
+
+            <div>
+              OPERATOR:
+              <b>ROOT</b>
+            </div>
+
+          </div>
+
+        </div>
+
+      </section>
+
+
+    </aside>
+
+  </div>
+
+
+  <div class="footer">
+    SUIYAN PAPA TOOL // CONTROL TERMINAL // AUTHORIZED OPERATOR
+  </div>
+
 </div>
 
-<div class="logo-wrap">
-<div class="logo">SUIYAN PAPA TOOL</div>
-</div>
-
-<div class="subtitle">
-◈ ELITE WHATSAPP CONTROL SYSTEM ◈
-</div>
-
-<div class="system-line">
-<span></span>
-<b>SECURE // ENCRYPTED // ACTIVE</b>
-<span></span>
-</div>
-
-<div class="grid">
-
-<!-- AUTH -->
-
-<div class="panel">
-
-<i class="corner c1"></i>
-<i class="corner c2"></i>
-<i class="corner c3"></i>
-<i class="corner c4"></i>
-
-<div class="panel-title">
-<span class="icon">◈</span>
-WHATSAPP AUTH
-<span class="tag">NODE 01</span>
-</div>
-
-<div class="input-wrap">
-
-<label>PHONE NUMBER</label>
-
-<input
-id="phone"
-type="text"
-placeholder="919XXXXXXXXX"
-autocomplete="off"
->
-
-</div>
-
-<button class="btn" onclick="login()">
-[ INITIALIZE SESSION ]
-</button>
-
-<div
-class="input-wrap"
-style="margin-top:15px"
->
-
-<label>SESSION IDENTIFIER</label>
-
-<input
-id="session"
-type="text"
-placeholder="WAITING FOR SESSION..."
-readonly
->
-
-</div>
-
-<div id="pairBox">
-
-<div class="pair-title">
-WHATSAPP PAIRING CODE
-</div>
-
-<div id="pairingCode">
-WAITING...
-</div>
-
-<div class="pair-help">
-
-WHATSAPP → SETTINGS → LINKED DEVICES
-
-<br>
-
-→ LINK A DEVICE → LINK WITH PHONE NUMBER
-
-</div>
-
-</div>
-
-<div class="status-box">
-
-<span class="status-dot"></span>
-
-<span id="connectionStatus">
-NODE STATUS: WAITING
-</span>
-
-</div>
-
-<div class="owner">
-
-SYSTEM OWNER //
-
-<strong>SUIYAN PAPA</strong>
-
-</div>
-
-</div>
-
-
-<!-- MONITOR -->
-
-<div class="panel">
-
-<i class="corner c1"></i>
-<i class="corner c2"></i>
-<i class="corner c3"></i>
-<i class="corner c4"></i>
-
-<div class="panel-title">
-
-<span class="icon">◉</span>
-
-SYSTEM MONITOR
-
-<span class="tag">LIVE</span>
-
-</div>
-
-<div class="stats">
-
-<div class="stat">
-
-<div
-class="stat-number"
-id="activeSessions"
->
-0
-</div>
-
-<div class="stat-label">
-SESSIONS
-</div>
-
-</div>
-
-
-<div class="stat">
-
-<div
-class="stat-number"
-id="messagesSent"
->
-0
-</div>
-
-<div class="stat-label">
-SENT
-</div>
-
-</div>
-
-
-<div class="stat">
-
-<div
-class="stat-number"
-id="engineStatus"
->
-OFF
-</div>
-
-<div class="stat-label">
-ENGINE
-</div>
-
-</div>
-
-</div>
-
-
-<div class="monitor">
-
-<div class="monitor-row">
-
-<span>CORE STATUS</span>
-
-<span class="good">
-ONLINE
-</span>
-
-</div>
-
-
-<div class="monitor-row">
-
-<span>NETWORK</span>
-
-<span class="good">
-SECURE
-</span>
-
-</div>
-
-
-<div class="monitor-row">
-
-<span>ENCRYPTION</span>
-
-<span class="good">
-ACTIVE
-</span>
-
-</div>
-
-
-<div class="monitor-row">
-
-<span>AUTOMATION</span>
-
-<span
-id="engineText"
-class="warn"
->
-STANDBY
-</span>
-
-</div>
-
-
-<div class="monitor-row">
-
-<span>NODE</span>
-
-<span style="color:var(--cyan)">
-SUIYAN-01
-</span>
-
-</div>
-
-</div>
-
-</div>
-
-
-<!-- AUTOMATION -->
-
-<div class="panel">
-
-<i class="corner c1"></i>
-<i class="corner c2"></i>
-<i class="corner c3"></i>
-<i class="corner c4"></i>
-
-<div class="panel-title">
-
-<span class="icon">◆</span>
-
-AUTOMATION QUEUE
-
-<span class="tag">
-CONTROL
-</span>
-
-</div>
-
-
-<!-- TARGET TYPE -->
-
-<div class="input-wrap">
-
-<label>TARGET TYPE</label>
-
-<select
-id="targetType"
-onchange="toggleTargetType()"
->
-
-<option value="number">
-NUMBER
-</option>
-
-<option value="group">
-GROUP
-</option>
-
-</select>
-
-</div>
-
-
-<!-- NUMBER TARGET -->
-
-<div
-class="input-wrap"
-id="numberTargetWrap"
->
-
-<label>TARGET NUMBER</label>
-
-<input
-id="target"
-type="text"
-placeholder="919XXXXXXXXX"
->
-
-</div>
-
-
-<!-- GROUP TARGET -->
-
-<div
-class="input-wrap"
-id="groupTargetWrap"
->
-
-<label>TARGET GROUP</label>
-
-<select id="groupTarget">
-
-<option value="">
-LOGIN FIRST
-</option>
-
-</select>
-
-<button
-type="button"
-class="btn group-refresh"
-onclick="loadGroups()"
->
-[ REFRESH GROUPS ]
-</button>
-
-</div>
-
-
-<div class="input-wrap">
-
-<label>MESSAGE PREFIX</label>
-
-<input
-id="prefix"
-type="text"
-placeholder="OPTIONAL PREFIX"
->
-
-</div>
-
-
-<div class="input-wrap">
-
-<label>
-MESSAGE DATA // ONE PER LINE
-</label>
-
-<textarea
-id="messages"
-placeholder="ENTER MESSAGE HERE...
-MESSAGE 01
-MESSAGE 02"
-></textarea>
-
-</div>
-
-
-<!-- TXT FILE UPLOAD -->
-
-<div class="input-wrap">
-
-<label>
-LOAD MESSAGE FILE // TXT
-</label>
-
-<input
-id="messageFile"
-type="file"
-accept=".txt"
-onchange="loadMessageFile(this)"
->
-
-</div>
-
-
-<div class="input-wrap">
-
-<label>
-DELAY / SPEED
-</label>
-
-<input
-id="speed"
-type="number"
-value="5"
-min="1"
->
-
-</div>
-
-
-<button
-class="btn"
-onclick="startAutomation()"
->
-[ START AUTOMATION ]
-</button>
-
-
-<div
-class="input-wrap"
-style="margin-top:15px"
->
-
-<label>
-STOP SESSION ID / UNIQUE KEY
-</label>
-
-<input
-id="stopSession"
-type="text"
-placeholder="PASTE SESSION ID / UNIQUE KEY"
-autocomplete="off"
->
-
-</div>
-
-
-<button
-class="btn stop"
-onclick="stopAutomation()"
->
-[ STOP AUTOMATION ]
-</button>
-
-</div>
-
-
-<!-- TERMINAL -->
-
-<div class="terminal">
-
-<div class="terminal-head">
-
-<span class="t-red"></span>
-<span class="t-yellow"></span>
-<span class="t-green"></span>
-
-<span class="terminal-title">
-SUIYAN // LIVE SYSTEM TERMINAL
-</span>
-
-</div>
-
-<div id="terminal">
-
-<div class="log-green">
-&gt; SUIYAN PAPA TOOL INITIALIZED
-</div>
-
-<div class="log-cyan">
-&gt; CYBERPUNK INTERFACE LOADED
-</div>
-
-<div class="log-green">
-&gt; SYSTEM ONLINE
-</div>
-
-<div class="log-yellow">
-&gt; WAITING FOR WHATSAPP SESSION...
-</div>
-
-</div>
-
-</div>
-
-</div>
-
-<div class="footer">
-
-SUIYAN PAPA TOOL //
-<b>PRIVATE CONTROL NODE</b> //
-SYSTEM READY
-
-</div>
-
-</div>
 
 <script>
+/* =========================================================
+   SUIYAN PAPA TOOL
+   UI ENGINE
+========================================================= */
 
-let currentSession = '';
+let audioContext = null;
+let masterGain = null;
+let ambientTimer = null;
+let audioEnabled = false;
 
-let pairingTimer = null;
-
-let statsTimer = null;
-
-let connectedLogged = false;
+let sessionTimer = null;
+let sessionStartedAt = null;
 
 
-/* TERMINAL */
+/* =========================================================
+   AUDIO ENGINE
+========================================================= */
 
-function terminal(
- message,
- type='green'
-){
+function initAudio(){
 
- const box =
- document.getElementById(
-  'terminal'
- );
+  if(audioContext){
+    return;
+  }
 
- const line =
- document.createElement(
-  'div'
- );
+  audioContext =
+    new (window.AudioContext || window.webkitAudioContext)();
 
- line.className =
-  'log-' + type;
+  masterGain =
+    audioContext.createGain();
 
- line.innerText =
-  '> ' + message;
+  masterGain.gain.value = 0.035;
 
- box.appendChild(line);
-
- box.scrollTop =
-  box.scrollHeight;
+  masterGain.connect(
+    audioContext.destination
+  );
 
 }
 
 
-/* TARGET TYPE */
+function hackerClick(){
 
-function toggleTargetType(){
+  if(!audioEnabled){
+    return;
+  }
 
- const type =
-  document.getElementById(
-   'targetType'
-  ).value;
+  initAudio();
 
- const numberWrap =
-  document.getElementById(
-   'numberTargetWrap'
+  const now =
+    audioContext.currentTime;
+
+  const osc =
+    audioContext.createOscillator();
+
+  const gain =
+    audioContext.createGain();
+
+  osc.type = "square";
+
+  osc.frequency.setValueAtTime(
+    900,
+    now
   );
 
- const groupWrap =
-  document.getElementById(
-   'groupTargetWrap'
+  osc.frequency.exponentialRampToValueAtTime(
+    180,
+    now + 0.07
   );
 
+  gain.gain.setValueAtTime(
+    0.12,
+    now
+  );
 
- if(type === 'group'){
+  gain.gain.exponentialRampToValueAtTime(
+    0.001,
+    now + 0.08
+  );
 
-  numberWrap.style.display =
-   'none';
+  osc.connect(gain);
+  gain.connect(masterGain);
 
-  groupWrap.style.display =
-   'block';
-
-  loadGroups();
-
- }else{
-
-  numberWrap.style.display =
-   'block';
-
-  groupWrap.style.display =
-   'none';
-
- }
-
+  osc.start(now);
+  osc.stop(now + 0.09);
 }
 
 
-/* LOAD GROUPS */
+function selectSound(){
 
-async function loadGroups(){
-
- if(!currentSession){
-
-  alert(
-   'Initialize WhatsApp session first'
-  );
-
-  return;
-
- }
-
-
- const select =
-  document.getElementById(
-   'groupTarget'
-  );
-
-
- select.innerHTML =
-  '<option value="">LOADING GROUPS...</option>';
-
-
- terminal(
-  'Loading WhatsApp groups...',
-  'cyan'
- );
-
-
- try{
-
-  const response =
-   await fetch(
-    '/api/groups/' +
-    encodeURIComponent(
-     currentSession
-    )
-   );
-
-
-  const data =
-   await response.json();
-
-
-  if(!data.success){
-
-   throw new Error(
-    data.message ||
-    'Unable to load groups'
-   );
-
+  if(!audioEnabled){
+    return;
   }
 
+  initAudio();
 
-  const groups =
-   data.groups || [];
+  const now =
+    audioContext.currentTime;
+
+  const osc =
+    audioContext.createOscillator();
+
+  const gain =
+    audioContext.createGain();
+
+  osc.type = "sine";
+
+  osc.frequency.setValueAtTime(
+    520,
+    now
+  );
+
+  osc.frequency.exponentialRampToValueAtTime(
+    760,
+    now + 0.08
+  );
+
+  gain.gain.setValueAtTime(
+    0.045,
+    now
+  );
+
+  gain.gain.exponentialRampToValueAtTime(
+    0.001,
+    now + 0.09
+  );
+
+  osc.connect(gain);
+  gain.connect(masterGain);
+
+  osc.start(now);
+  osc.stop(now + 0.1);
+}
 
 
-  if(groups.length === 0){
+function ambientPulse(){
 
-   select.innerHTML =
-    '<option value="">NO GROUPS FOUND</option>';
-
-   terminal(
-    'No WhatsApp groups found.',
-    'yellow'
-   );
-
-   return;
-
+  if(!audioEnabled){
+    return;
   }
 
+  initAudio();
 
-  select.innerHTML =
-   '<option value="">SELECT GROUP</option>';
+  const now =
+    audioContext.currentTime;
+
+  const osc =
+    audioContext.createOscillator();
+
+  const gain =
+    audioContext.createGain();
+
+  osc.type = "sine";
+
+  osc.frequency.value =
+    48 + Math.random() * 12;
+
+  gain.gain.setValueAtTime(
+    0.0001,
+    now
+  );
+
+  gain.gain.linearRampToValueAtTime(
+    0.018,
+    now + 0.8
+  );
+
+  gain.gain.linearRampToValueAtTime(
+    0.0001,
+    now + 2.7
+  );
+
+  osc.connect(gain);
+  gain.connect(masterGain);
+
+  osc.start(now);
+  osc.stop(now + 2.8);
+}
 
 
-  groups.forEach(
-   group => {
+function toggleAudio(){
 
-    const option =
-     document.createElement(
-      'option'
-     );
+  initAudio();
 
-    option.value =
-     group.id;
+  audioEnabled =
+    !audioEnabled;
 
-    option.textContent =
-     group.subject;
+  const btn =
+    document.getElementById("audioBtn");
 
-    select.appendChild(
-     option
+  if(audioEnabled){
+
+    audioContext.resume();
+
+    btn.textContent =
+      "[ AUDIO // ONLINE ]";
+
+    ambientPulse();
+
+    clearInterval(
+      ambientTimer
     );
 
-   }
-  );
+    ambientTimer =
+      setInterval(
+        ambientPulse,
+        3000
+      );
 
+    hackerClick();
 
-  terminal(
-   'Groups loaded: ' +
-   groups.length,
-   'green'
-  );
+  }else{
 
+    btn.textContent =
+      "[ ACTIVATE AUDIO ]";
 
- }catch(error){
-
-  console.error(error);
-
-
-  select.innerHTML =
-   '<option value="">FAILED TO LOAD GROUPS</option>';
-
-
-  terminal(
-   'Group loading failed: ' +
-   error.message,
-   'red'
-  );
-
-
-  alert(
-   error.message
-  );
-
- }
-
-}
-
-
-/* TXT MESSAGE FILE */
-
-function loadMessageFile(input){
-
- if(
-  !input.files ||
-  !input.files[0]
- ){
-
-  return;
-
- }
-
-
- const file =
-  input.files[0];
-
-
- if(
-  !file.name
-   .toLowerCase()
-   .endsWith('.txt')
- ){
-
-  alert(
-   'Please select a .txt file'
-  );
-
-  input.value='';
-
-  return;
-
- }
-
-
- const reader =
-  new FileReader();
-
-
- reader.onload =
-  function(event){
-
-   const text =
-    event.target.result ||
-    '';
-
-
-   const messages =
-    text
-     .split(/\r?\n/)
-     .map(
-      x => x.trim()
-     )
-     .filter(
-      x => x.length > 0
-     );
-
-
-   document
-    .getElementById(
-     'messages'
-    )
-    .value =
-     messages.join('\n');
-
-
-   terminal(
-    'Message file loaded: ' +
-    file.name,
-    'green'
-   );
-
-
-   terminal(
-    'Messages loaded: ' +
-    messages.length,
-    'cyan'
-   );
-
-  };
-
-
- reader.onerror =
-  function(){
-
-   alert(
-    'Unable to read message file'
-   );
-
-
-   terminal(
-    'Message file read failed.',
-    'red'
-   );
-
-  };
-
-
- reader.readAsText(file);
-
-}
-
-
-/* LOGIN */
-
-async function login(){
-
- const phone =
-  document
-   .getElementById('phone')
-   .value
-   .trim();
-
-
- if(!phone){
-
-  alert(
-   'Enter WhatsApp phone number'
-  );
-
-  return;
-
- }
-
-
- terminal(
-  'Initializing secure WhatsApp node...',
-  'cyan'
- );
-
-
- document
-  .getElementById(
-   'connectionStatus'
-  )
-  .innerText =
-   'NODE STATUS: CONNECTING...';
-
-
- try{
-
-  const response =
-   await fetch(
-    '/api/login',
-    {
-     method:'POST',
-
-     headers:{
-      'Content-Type':
-       'application/json'
-     },
-
-     body:JSON.stringify({
-      phone:phone
-     })
-    }
-   );
-
-
-  const data =
-   await response.json();
-
-
-  if(!data.success){
-
-   terminal(
-    data.message ||
-    'Session initialization failed',
-    'red'
-   );
-
-
-   alert(
-    data.message ||
-    'Login failed'
-   );
-
-
-   return;
+    clearInterval(
+      ambientTimer
+    );
 
   }
 
+}
 
-  currentSession =
-   data.sessionId;
 
+/* =========================================================
+   GLOBAL CLICK SOUND
+========================================================= */
+
+document.addEventListener(
+  "click",
+  function(e){
+
+    if(
+      e.target.tagName === "BUTTON"
+    ){
+
+      if(
+        e.target.id !== "audioBtn"
+      ){
+        hackerClick();
+      }
+
+    }
+
+  }
+);
+
+
+document.addEventListener(
+  "change",
+  function(e){
+
+    if(
+      e.target.tagName === "SELECT" ||
+      e.target.type === "file"
+    ){
+      selectSound();
+    }
+
+  }
+);
+
+
+document
+  .getElementById("audioBtn")
+  .addEventListener(
+    "click",
+    toggleAudio
+  );
+
+
+/* =========================================================
+   CLOCK
+========================================================= */
+
+function updateClock(){
+
+  const now =
+    new Date();
+
+  const time =
+    now.toLocaleTimeString(
+      "en-GB",
+      {
+        hour12:false
+      }
+    );
 
   document
-   .getElementById(
-    'session'
-   )
-   .value =
-    currentSession;
+    .getElementById("clock")
+    .textContent = time;
+
+}
+
+setInterval(
+  updateClock,
+  1000
+);
+
+updateClock();
 
 
-  document
-   .getElementById(
-    'pairBox'
-   )
-   .style.display =
-    'block';
+/* =========================================================
+   MATRIX
+========================================================= */
 
+const canvas =
+  document.getElementById("matrix");
 
-  document
-   .getElementById(
-    'pairingCode'
-   )
-   .innerText =
-    'GENERATING...';
+const ctx =
+  canvas.getContext("2d");
 
+let matrixWidth =
+  window.innerWidth;
 
-  terminal(
-   'Session created: ' +
-   currentSession,
-   'green'
+let matrixHeight =
+  window.innerHeight;
+
+canvas.width =
+  matrixWidth;
+
+canvas.height =
+  matrixHeight;
+
+const chars =
+  "01ABCDEFGHIJKLMNOPQRSTUVWXYZ#$%<>/{}[]";
+
+const fontSize = 13;
+
+let columns =
+  Math.floor(
+    matrixWidth / fontSize
   );
 
+let drops =
+  Array(columns).fill(1);
 
-  terminal(
-   'Generating WhatsApp pairing code...',
-   'yellow'
+
+function matrix(){
+
+  ctx.fillStyle =
+    "rgba(0,0,0,0.075)";
+
+  ctx.fillRect(
+    0,
+    0,
+    canvas.width,
+    canvas.height
   );
 
+  ctx.fillStyle =
+    "#2b9b59";
 
-  checkPairingCode(
-   currentSession
-  );
+  ctx.font =
+    fontSize + "px monospace";
+
+  for(
+    let i = 0;
+    i < drops.length;
+    i++
+  ){
+
+    const char =
+      chars[
+        Math.floor(
+          Math.random() *
+          chars.length
+        )
+      ];
+
+    ctx.fillText(
+      char,
+      i * fontSize,
+      drops[i] * fontSize
+    );
+
+    if(
+      drops[i] * fontSize >
+      canvas.height &&
+      Math.random() > .975
+    ){
+      drops[i] = 0;
+    }
+
+    drops[i]++;
+  }
+
+}
+
+setInterval(
+  matrix,
+  45
+);
 
 
-  startStats();
+window.addEventListener(
+  "resize",
+  function(){
+
+    canvas.width =
+      window.innerWidth;
+
+    canvas.height =
+      window.innerHeight;
+
+    columns =
+      Math.floor(
+        canvas.width /
+        fontSize
+      );
+
+    drops =
+      Array(columns).fill(1);
+
+  }
+);
 
 
- }catch(error){
+/* =========================================================
+   TERMINAL
+========================================================= */
 
-  terminal(
-   'Connection error: ' +
-   error.message,
-   'red'
-  );
+function terminal(
+  message,
+  type = "normal"
+){
 
- }
+  const box =
+    document.getElementById(
+      "terminal"
+    );
+
+  const now =
+    new Date()
+      .toLocaleTimeString(
+        "en-GB",
+        {
+          hour12:false
+        }
+      );
+
+  const line =
+    document.createElement(
+      "div"
+    );
+
+  line.className =
+    "term-line";
+
+  let cls =
+    "";
+
+  if(type === "ok"){
+    cls = "ok";
+  }
+
+  if(type === "warn"){
+    cls = "warn";
+  }
+
+  if(type === "err"){
+    cls = "err";
+  }
+
+  line.innerHTML =
+    `<span class="time">[${now}]</span> ` +
+    `<span class="${cls}">${escapeHtml(message)}</span>`;
+
+  box.appendChild(line);
+
+  box.scrollTop =
+    box.scrollHeight;
 
 }
 
 
-/* PAIRING */
+function escapeHtml(str){
 
-function checkPairingCode(
- sessionId
-){
+  return String(str)
+    .replace(/&/g,"&amp;")
+    .replace(/</g,"&lt;")
+    .replace(/>/g,"&gt;")
+    .replace(/"/g,"&quot;")
+    .replace(/'/g,"&#039;");
 
- if(pairingTimer){
-
-  clearInterval(
-   pairingTimer
-  );
-
- }
+}
 
 
- pairingTimer =
-  setInterval(
-   async()=>{
+/* =========================================================
+   SPEED
+========================================================= */
+
+function updateSpeedValue(){
+
+  const value =
+    document.getElementById(
+      "speed"
+    ).value;
+
+  document
+    .getElementById(
+      "speedValue"
+    )
+    .textContent =
+      value + "ms";
+
+}
+
+
+/* =========================================================
+   TARGET TYPE
+========================================================= */
+
+let currentTargetType =
+  "number";
+
+
+function toggleTargetType(type){
+
+  currentTargetType =
+    type;
+
+  const numberBtn =
+    document.getElementById(
+      "numberMode"
+    );
+
+  const groupBtn =
+    document.getElementById(
+      "groupMode"
+    );
+
+  const numberWrap =
+    document.getElementById(
+      "numberTargetWrap"
+    );
+
+  const groupWrap =
+    document.getElementById(
+      "groupTargetWrap"
+    );
+
+
+  if(type === "number"){
+
+    numberBtn.classList.add(
+      "active"
+    );
+
+    groupBtn.classList.remove(
+      "active"
+    );
+
+    numberWrap.classList.remove(
+      "hidden"
+    );
+
+    groupWrap.classList.add(
+      "hidden"
+    );
+
+  }else{
+
+    groupBtn.classList.add(
+      "active"
+    );
+
+    numberBtn.classList.remove(
+      "active"
+    );
+
+    numberWrap.classList.add(
+      "hidden"
+    );
+
+    groupWrap.classList.remove(
+      "hidden"
+    );
+
+    loadGroups();
+
+  }
+
+}
+
+
+/* =========================================================
+   INITIAL TERMINAL
+========================================================= */
+
+terminal(
+  "SUIYAN control interface loaded",
+  "ok"
+);
+
+terminal(
+  "awaiting operator authentication..."
+);
+
+updateSpeedValue();
+/* =========================================================
+   MESSAGE FILE
+========================================================= */
+
+document
+  .getElementById("messageFile")
+  .addEventListener("change", async function(){
+
+    const file = this.files[0];
+
+    if(!file) return;
 
     try{
 
-     const response =
-      await fetch(
-       '/api/pairing-code/' +
-       sessionId
-      );
-
-
-     const data =
-      await response.json();
-
-
-     if(
-      data.status ===
-      'ready'
-     ){
+      const text =
+        await file.text();
 
       document
-       .getElementById(
-        'pairingCode'
-       )
-       .innerText =
-        data.pairingCode;
-
-
-      document
-       .getElementById(
-        'connectionStatus'
-       )
-       .innerText =
-        'NODE STATUS: PAIRING CODE READY';
-
+        .getElementById("messages")
+        .value = text;
 
       terminal(
-       'PAIRING CODE: ' +
-       data.pairingCode,
-       'cyan'
+        `message file loaded: ${file.name}`,
+        "ok"
       );
-
-
-      terminal(
-       'Enter the code inside WhatsApp Linked Devices.',
-       'yellow'
-      );
-
-
-      clearInterval(
-       pairingTimer
-      );
-
-     }
-
-
-     if(
-      data.status ===
-      'error'
-     ){
-
-      document
-       .getElementById(
-        'pairingCode'
-       )
-       .innerText =
-        'ERROR';
-
-
-      terminal(
-       'Pairing error: ' +
-       data.message,
-       'red'
-      );
-
-
-      clearInterval(
-       pairingTimer
-      );
-
-     }
-
 
     }catch(error){
 
-     console.log(error);
+      terminal(
+        "message file read failed",
+        "err"
+      );
 
     }
 
-   },
-   2000
-  );
-
-}
- /* START AUTOMATION */
-
-async function startAutomation(){
-
- const sessionId =
-  document
-   .getElementById('session')
-   .value
-   .trim();
+  });
 
 
- const targetType =
-  document
-   .getElementById('targetType')
-   .value;
+/* =========================================================
+   GROUP LOADER
+========================================================= */
 
+async function loadGroups(){
 
- let target = '';
+  const sessionId =
+    document
+      .getElementById("session")
+      .value
+      .trim();
 
+  const select =
+    document.getElementById(
+      "groupTarget"
+    );
 
- /*
-  * NUMBER TARGET
-  */
+  if(!sessionId){
 
- if(targetType === 'number'){
+    terminal(
+      "session id required before loading groups",
+      "warn"
+    );
 
-  target =
-   document
-    .getElementById('target')
-    .value
-    .trim();
-
-
-  if(!target){
-
-   alert(
-    'Enter target number'
-   );
-
-   return;
-
+    return;
   }
 
- }
-
-
- /*
-  * GROUP TARGET
-  */
-
- if(targetType === 'group'){
-
-  target =
-   document
-    .getElementById('groupTarget')
-    .value
-    .trim();
-
-
-  if(!target){
-
-   alert(
-    'Select a WhatsApp group'
-   );
-
-   return;
-
-  }
-
- }
-
-
- const prefix =
-  document
-   .getElementById('prefix')
-   .value
-   .trim();
-
-
- const rawMessages =
-  document
-   .getElementById('messages')
-   .value;
-
-
- const speed =
-  document
-   .getElementById('speed')
-   .value;
-
-
- if(!sessionId){
-
-  alert(
-   'Initialize WhatsApp session first'
-  );
-
-  return;
-
- }
-
-
- const messages =
-  rawMessages
-   .split('\n')
-   .map(
-    x => x.trim()
-   )
-   .filter(
-    x => x.length > 0
-   );
-
-
- if(messages.length === 0){
-
-  alert(
-   'Enter at least one message'
-  );
-
-  return;
-
- }
-
-
- terminal(
-  'Uploading automation queue...',
-  'cyan'
- );
-
-
- try{
-
-  const response =
-   await fetch(
-    '/api/start-automation',
-    {
-     method:'POST',
-
-     headers:{
-      'Content-Type':
-       'application/json'
-     },
-
-     body:JSON.stringify({
-
-      sessionId:
-       sessionId,
-
-      target:
-       target,
-
-      prefix:
-       prefix,
-
-      messages:
-       messages,
-
-      speed:
-       Number(speed) || 5
-
-     })
-    }
-   );
-
-
-  const data =
-   await response.json();
-
-
-  if(!data.success){
-
-   terminal(
-    data.message ||
-    'Queue failed',
-    'red'
-   );
-
-   return;
-
-  }
-
-
-  document
-   .getElementById(
-    'engineStatus'
-   )
-   .innerText =
-    'ON';
-
-
-  document
-   .getElementById(
-    'engineText'
-   )
-   .innerText =
-    'ACTIVE';
-
-
-  document
-   .getElementById(
-    'engineText'
-   )
-   .className =
-    'good';
-
+  select.innerHTML =
+    `<option value="">-- LOADING GROUPS --</option>`;
 
   terminal(
-   data.message,
-   'green'
+    "requesting participating groups..."
   );
 
-
-  terminal(
-   'Automation engine active.',
-   'green'
-  );
-
-
- }catch(error){
-
-  terminal(
-   'Automation error: ' +
-   error.message,
-   'red'
-  );
-
- }
-
-}
-
-
-/* STOP AUTOMATION */
-
-async function stopAutomation(){
-
- const sessionId =
-  document
-   .getElementById(
-    'stopSession'
-   )
-   .value
-   .trim() ||
-  document
-   .getElementById(
-    'session'
-   )
-   .value
-   .trim();
-
-
- if(!sessionId){
-
-  alert(
-   'Enter session ID'
-  );
-
-  return;
-
- }
-
-
- terminal(
-  'Stopping automation...',
-  'yellow'
- );
-
-
- try{
-
-  const response =
-   await fetch(
-    '/api/stop-automation',
-    {
-     method:'POST',
-
-     headers:{
-      'Content-Type':
-       'application/json'
-     },
-
-     body:JSON.stringify({
-      sessionId:
-       sessionId
-     })
-    }
-   );
-
-
-  const data =
-   await response.json();
-
-
-  if(!data.success){
-
-   terminal(
-    data.message ||
-    'Unable to stop automation',
-    'red'
-   );
-
-   return;
-
-  }
-
-
-  document
-   .getElementById(
-    'engineStatus'
-   )
-   .innerText =
-    'OFF';
-
-
-  document
-   .getElementById(
-    'engineText'
-   )
-   .innerText =
-    'STANDBY';
-
-
-  document
-   .getElementById(
-    'engineText'
-   )
-   .className =
-    'warn';
-
-
-  terminal(
-   data.message ||
-   'Automation stopped.',
-   'green'
-  );
-
-
- }catch(error){
-
-  terminal(
-   'Stop error: ' +
-   error.message,
-   'red'
-  );
-
- }
-
-}
-
-
-/* LIVE STATS */
-
-function startStats(){
-
- if(statsTimer){
-
-  clearInterval(
-   statsTimer
-  );
-
- }
-
-
- updateStats();
-
-
- statsTimer =
-  setInterval(
-   updateStats,
-   5000
-  );
-
-}
-
-
-/* UPDATE STATS */
-
-async function updateStats(){
-
- try{
-
-  const response =
-   await fetch(
-    '/api/sessions'
-   );
-
-
-  const data =
-   await response.json();
-
-
-  if(!data){
-
-   return;
-
-  }
-
-
-  /*
-   * SUPPORT BOTH:
-   * ARRAY RESPONSE
-   * OBJECT RESPONSE
-   */
-
-  let sessions = [];
-
-
-  if(
-   Array.isArray(data)
-  ){
-
-   sessions =
-    data;
-
-  }else if(
-   Array.isArray(
-    data.sessions
-   )
-  ){
-
-   sessions =
-    data.sessions;
-
-  }
-
-
-  document
-   .getElementById(
-    'activeSessions'
-   )
-   .innerText =
-    sessions.length;
-
-
-  /*
-   * SENT COUNT
-   */
-
-  let sent = 0;
-
-
-  sessions.forEach(
-   session => {
+  try{
+
+    const response =
+      await fetch(
+        `/api/groups/${encodeURIComponent(sessionId)}`
+      );
+
+    const data =
+      await response.json();
 
     if(
-     typeof session.sent ===
-     'number'
+      !data ||
+      !data.success
     ){
 
-     sent +=
-      session.sent;
+      select.innerHTML =
+        `<option value="">-- NO GROUPS --</option>`;
+
+      terminal(
+        data?.message ||
+        "group fetch failed",
+        "err"
+      );
+
+      return;
+    }
+
+    const groups =
+      Array.isArray(data.groups)
+        ? data.groups
+        : [];
+
+    select.innerHTML =
+      `<option value="">-- SELECT GROUP --</option>`;
+
+    groups.forEach(group => {
+
+      const option =
+        document.createElement(
+          "option"
+        );
+
+      option.value =
+        group.id;
+
+      option.textContent =
+        group.subject || group.id;
+
+      select.appendChild(
+        option
+      );
+
+    });
+
+    terminal(
+      `${groups.length} group(s) loaded`,
+      "ok"
+    );
+
+    updateTelemetry(
+      "GROUP CHANNEL"
+    );
+
+  }catch(error){
+
+    select.innerHTML =
+      `<option value="">-- GROUP LOAD ERROR --</option>`;
+
+    terminal(
+      `group request failed: ${error.message}`,
+      "err"
+    );
+
+  }
+
+}
+
+
+/* =========================================================
+   SESSION CHECK
+========================================================= */
+
+async function checkCurrentSession(){
+
+  const sessionId =
+    document
+      .getElementById("session")
+      .value
+      .trim();
+
+  if(!sessionId){
+
+    terminal(
+      "enter session id first",
+      "warn"
+    );
+
+    return;
+  }
+
+  terminal(
+    `checking session: ${sessionId}`
+  );
+
+  try{
+
+    const response =
+      await fetch(
+        "/api/sessions"
+      );
+
+    const data =
+      await response.json();
+
+    let found = false;
+
+    if(Array.isArray(data)){
+      found =
+        data.includes(sessionId);
+    }
+
+    if(data?.sessions){
+
+      found =
+        data.sessions.some(
+          item =>
+            typeof item === "string"
+              ? item === sessionId
+              : item.sessionId === sessionId
+        );
 
     }
 
-   }
-  );
+    if(found){
+
+      terminal(
+        "session detected as active",
+        "ok"
+      );
+
+      setEngine(
+        "ONLINE",
+        "authenticated"
+      );
+
+      updateTelemetry(
+        "CONNECTED"
+      );
+
+    }else{
+
+      terminal(
+        "session not detected",
+        "warn"
+      );
+
+      setEngine(
+        "OFF",
+        "standby"
+      );
+
+      updateTelemetry(
+        "STANDBY"
+      );
+
+    }
+
+  }catch(error){
+
+    terminal(
+      `session check failed: ${error.message}`,
+      "err"
+    );
+
+  }
+
+}
 
 
-  document
-   .getElementById(
-    'messagesSent'
-   )
-   .innerText =
-    sent;
+/* =========================================================
+   LOGIN / PAIRING
+========================================================= */
+
+let pairingTimer = null;
 
 
-  /*
-   * CURRENT SESSION STATUS
-   */
+async function login(){
 
-  if(currentSession){
+  const phone =
+    document
+      .getElementById("phone")
+      .value
+      .trim();
 
-   const current =
-    sessions.find(
-     session =>
-      session.sessionId ===
-      currentSession ||
-      session.id ===
-      currentSession
+  const sessionId =
+    document
+      .getElementById("session")
+      .value
+      .trim();
+
+  const pairBox =
+    document.getElementById(
+      "pairBox"
     );
 
 
-   if(current){
+  if(!phone){
 
-    const connected =
-     current.connected === true ||
-     current.status ===
-      'connected' ||
-     current.status ===
-      'open';
+    terminal(
+      "phone number missing",
+      "warn"
+    );
 
+    return;
+  }
 
-    if(connected){
+  if(!sessionId){
 
-     document
-      .getElementById(
-       'connectionStatus'
-      )
-      .innerText =
-       'NODE STATUS: CONNECTED';
+    terminal(
+      "session id missing",
+      "warn"
+    );
 
-
-     if(!connectedLogged){
-
-      terminal(
-       'WhatsApp node connected successfully.',
-       'green'
-      );
-
-      connectedLogged = true;
-
-     }
-
-    }
-
-   }
-
+    return;
   }
 
 
- }catch(error){
-
-  console.log(
-   'Stats error:',
-   error.message
+  clearInterval(
+    pairingTimer
   );
 
- }
+
+  pairBox.classList.remove(
+    "hidden"
+  );
+
+  pairBox.textContent =
+    "INITIALIZING SESSION...";
+
+
+  terminal(
+    `initializing WhatsApp session: ${sessionId}`
+  );
+
+
+  try{
+
+    const response =
+      await fetch(
+        "/api/login",
+        {
+          method:"POST",
+          headers:{
+            "Content-Type":
+              "application/json"
+          },
+          body:JSON.stringify({
+            phone,
+            sessionId
+          })
+        }
+      );
+
+
+    const data =
+      await response.json();
+
+
+    if(!response.ok){
+
+      throw new Error(
+        data?.message ||
+        "login request failed"
+      );
+
+    }
+
+
+    terminal(
+      "session initialization accepted",
+      "ok"
+    );
+
+
+    if(data?.pairingCode){
+
+      showPairingCode(
+        data.pairingCode
+      );
+
+    }else{
+
+      pairBox.textContent =
+        "WAITING FOR PAIRING CODE...";
+
+      pollPairingCode(
+        sessionId
+      );
+
+    }
+
+
+    updateTelemetry(
+      "AUTHENTICATING"
+    );
+
+
+  }catch(error){
+
+    pairBox.textContent =
+      "AUTHENTICATION FAILED";
+
+    terminal(
+      `authentication error: ${error.message}`,
+      "err"
+    );
+
+    updateTelemetry(
+      "AUTH FAILED"
+    );
+
+  }
 
 }
 
 
-/* INITIAL SYSTEM MESSAGE */
+function showPairingCode(code){
 
-window.addEventListener(
- 'load',
- ()=>{
+  const pairBox =
+    document.getElementById(
+      "pairBox"
+    );
+
+  pairBox.classList.remove(
+    "hidden"
+  );
+
+  pairBox.textContent =
+    String(code)
+      .toUpperCase()
+      .replace(
+        /(.{4})/g,
+        "$1 "
+      )
+      .trim();
 
   terminal(
-   'Secure interface ready.',
-   'green'
+    "pairing code received",
+    "ok"
+  );
+
+}
+
+
+function pollPairingCode(sessionId){
+
+  clearInterval(
+    pairingTimer
+  );
+
+
+  pairingTimer =
+    setInterval(
+      async function(){
+
+        try{
+
+          const response =
+            await fetch(
+              `/api/pairing-code/${encodeURIComponent(sessionId)}`
+            );
+
+          if(!response.ok){
+            return;
+          }
+
+          const data =
+            await response.json();
+
+
+          if(data?.pairingCode){
+
+            showPairingCode(
+              data.pairingCode
+            );
+
+          }
+
+
+          if(
+            data?.connected === true ||
+            data?.status === "connected"
+          ){
+
+            clearInterval(
+              pairingTimer
+            );
+
+            document
+              .getElementById(
+                "pairBox"
+              )
+              .textContent =
+                "✓ WHATSAPP CONNECTED";
+
+            terminal(
+              "WhatsApp authentication successful",
+              "ok"
+            );
+
+            setEngine(
+              "ONLINE",
+              "WhatsApp connected"
+            );
+
+            updateTelemetry(
+              "CONNECTED"
+            );
+
+            startSessionTimer();
+
+          }
+
+        }catch(error){
+
+          /* keep polling */
+
+        }
+
+      },
+      2500
+    );
+
+}
+
+
+/* =========================================================
+   ENGINE STATUS
+========================================================= */
+
+function setEngine(
+  status,
+  text
+){
+
+  document
+    .getElementById(
+      "engineStatus"
+    )
+    .textContent =
+      status;
+
+  document
+    .getElementById(
+      "engineText"
+    )
+    .textContent =
+      text;
+
+}
+
+
+/* =========================================================
+   TELEMETRY
+========================================================= */
+
+function updateTelemetry(channel){
+
+  document
+    .getElementById(
+      "channelInfo"
+    )
+    .textContent =
+      channel;
+
+}
+
+
+/* =========================================================
+   SESSION UPTIME
+========================================================= */
+
+function startSessionTimer(){
+
+  if(!sessionStartedAt){
+
+    sessionStartedAt =
+      Date.now();
+
+  }
+
+  clearInterval(
+    sessionTimer
+  );
+
+  sessionTimer =
+    setInterval(
+      updateUptime,
+      1000
+    );
+
+  updateUptime();
+
+}
+
+
+function updateUptime(){
+
+  if(!sessionStartedAt){
+    return;
+  }
+
+  const elapsed =
+    Math.floor(
+      (Date.now() -
+        sessionStartedAt) /
+      1000
+    );
+
+  const minutes =
+    Math.floor(
+      elapsed / 60
+    )
+      .toString()
+      .padStart(2,"0");
+
+  const seconds =
+    (elapsed % 60)
+      .toString()
+      .padStart(2,"0");
+
+  document
+    .getElementById(
+      "uptime"
+    )
+    .textContent =
+      `${minutes}:${seconds}`;
+
+}
+
+
+/* =========================================================
+   TARGET RESOLVER
+========================================================= */
+
+function getSelectedTarget(){
+
+  if(
+    currentTargetType ===
+    "group"
+  ){
+
+    return document
+      .getElementById(
+        "groupTarget"
+      )
+      .value
+      .trim();
+
+  }
+
+  return document
+    .getElementById(
+      "target"
+    )
+    .value
+    .trim();
+
+}
+
+
+/* =========================================================
+   MESSAGE RESOLVER
+========================================================= */
+
+function getMessages(){
+
+  const raw =
+    document
+      .getElementById(
+        "messages"
+      )
+      .value;
+
+  return raw
+    .split(/\r?\n/)
+    .map(
+      item => item.trim()
+    )
+    .filter(Boolean);
+
+}
+
+
+/* =========================================================
+   START AUTOMATION
+========================================================= */
+
+async function startAutomation(){
+
+  const sessionId =
+    document
+      .getElementById(
+        "session"
+      )
+      .value
+      .trim();
+
+  const target =
+    getSelectedTarget();
+
+  const messages =
+    getMessages();
+
+  const speed =
+    Number(
+      document
+        .getElementById(
+          "speed"
+        )
+        .value
+    );
+
+  const prefix =
+    document
+      .getElementById(
+        "prefix"
+      )
+      .value
+      .trim();
+
+
+  if(!sessionId){
+
+    terminal(
+      "session id required",
+      "warn"
+    );
+
+    return;
+  }
+
+
+  if(!target){
+
+    terminal(
+      "target not selected",
+      "warn"
+    );
+
+    return;
+  }
+
+
+  if(messages.length === 0){
+
+    terminal(
+      "message payload is empty",
+      "warn"
+    );
+
+    return;
+  }
+
+
+  const targetType =
+    currentTargetType;
+
+
+  terminal(
+    "preparing automation queue..."
   );
 
   terminal(
-   'Waiting for WhatsApp authentication...',
-   'yellow'
+    `target mode: ${targetType}`
   );
 
- }
+  terminal(
+    `payload count: ${messages.length}`
+  );
+
+  terminal(
+    `execution interval: ${speed}ms`
+  );
+
+
+  try{
+
+    const response =
+      await fetch(
+        "/api/start-automation",
+        {
+          method:"POST",
+          headers:{
+            "Content-Type":
+              "application/json"
+          },
+          body:JSON.stringify({
+
+            sessionId,
+
+            target,
+
+            messages,
+
+            speed,
+
+            prefix,
+
+            targetType
+
+          })
+        }
+      );
+
+
+    const data =
+      await response.json();
+
+
+    if(!response.ok){
+
+      throw new Error(
+        data?.message ||
+        "automation request failed"
+      );
+
+    }
+
+
+    terminal(
+      "automation engine started",
+      "ok"
+    );
+
+
+    setEngine(
+      "RUNNING",
+      "queue active"
+    );
+
+
+    updateTelemetry(
+      "EXECUTING"
+    );
+
+
+  }catch(error){
+
+    terminal(
+      `automation start failed: ${error.message}`,
+      "err"
+    );
+
+    setEngine(
+      "ERROR",
+      "request failed"
+    );
+
+  }
+
+}
+
+
+/* =========================================================
+   STOP AUTOMATION
+========================================================= */
+
+async function stopAutomation(){
+
+  const sessionId =
+    document
+      .getElementById(
+        "session"
+      )
+      .value
+      .trim();
+
+
+  if(!sessionId){
+
+    terminal(
+      "session id required",
+      "warn"
+    );
+
+    return;
+  }
+
+
+  terminal(
+    "sending abort command..."
+  );
+
+
+  try{
+
+    const response =
+      await fetch(
+        "/api/stop-automation",
+        {
+          method:"POST",
+          headers:{
+            "Content-Type":
+              "application/json"
+          },
+          body:JSON.stringify({
+            sessionId
+          })
+        }
+      );
+
+
+    const data =
+      await response.json();
+
+
+    if(!response.ok){
+
+      throw new Error(
+        data?.message ||
+        "stop request failed"
+      );
+
+    }
+
+
+    terminal(
+      "automation engine stopped",
+      "ok"
+    );
+
+
+    setEngine(
+      "ONLINE",
+      "standby"
+    );
+
+
+    updateTelemetry(
+      "STANDBY"
+    );
+
+
+  }catch(error){
+
+    terminal(
+      `abort failed: ${error.message}`,
+      "err"
+    );
+
+  }
+
+}
+
+
+/* =========================================================
+   LIVE STATS
+========================================================= */
+
+async function refreshStats(){
+
+  try{
+
+    const response =
+      await fetch(
+        "/api/sessions"
+      );
+
+    if(!response.ok){
+      return;
+    }
+
+    const data =
+      await response.json();
+
+
+    let count = 0;
+
+    if(
+      Array.isArray(data)
+    ){
+
+      count =
+        data.length;
+
+    }else if(
+      Array.isArray(
+        data?.sessions
+      )
+    ){
+
+      count =
+        data.sessions.length;
+
+    }
+
+
+    document
+      .getElementById(
+        "activeSessions"
+      )
+      .textContent =
+        count;
+
+
+  }catch(error){
+
+    /* silent background update */
+
+  }
+
+}
+
+
+setInterval(
+  refreshStats,
+  5000
+);
+
+refreshStats();
+
+
+/* =========================================================
+   KEYBOARD TERMINAL EFFECT
+========================================================= */
+
+document.addEventListener(
+  "keydown",
+  function(e){
+
+    if(
+      e.key === "Enter" &&
+      e.ctrlKey
+    ){
+
+      hackerClick();
+
+      terminal(
+        "CTRL+ENTER command signal received",
+        "ok"
+      );
+
+    }
+
+  }
+);
+
+
+/* =========================================================
+   STARTUP
+========================================================= */
+
+terminal(
+  "interface modules loaded",
+  "ok"
+);
+
+terminal(
+  "matrix renderer online",
+  "ok"
+);
+
+terminal(
+  "audio subsystem ready",
+  "ok"
+);
+
+terminal(
+  "authentication node standing by",
+  "ok"
+);
+
+terminal(
+  "operator access required..."
+);
+
+
+/* =========================================================
+   FINAL INITIALIZATION
+========================================================= */
+
+setTimeout(
+  () => {
+
+    refreshStats();
+
+  },
+  1000
 );
 
 </script>
