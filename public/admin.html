@@ -1,55 +1,728 @@
 <!doctype html>
 <html>
- <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>SUIYAN ADMIN</title>
-  <style>body{margin:0;background:#090d12;color:#e8f1f8;font-family:Arial,sans-serif}*{box-sizing:border-box}.wrap{max-width:1100px;margin:auto;padding:20px}.card{background:#111923;border:1px solid #263544;border-radius:14px;padding:18px;margin-bottom:16px}input,button{padding:12px;border-radius:9px;border:1px solid #34485a;background:#0b121a;color:#fff}button{cursor:pointer}.row{display:flex;gap:10px;flex-wrap:wrap}.users button{display:block;width:100%;text-align:left;margin:7px 0}.grid{display:grid;grid-template-columns:300px 1fr;gap:16px}.msg{padding:8px 10px;margin:7px 0;border-radius:9px;background:#172331}.sent{margin-left:25%;background:#14301f}.muted{color:#91a2b2;font-size:12px}@media(max-width:700px){.grid{grid-template-columns:1fr}.sent{margin-left:10%}}</style>
- </head>
- <body>
-  <div class="wrap">
-   <h2>🔐 SUIYAN ADMIN PANEL</h2>
-   <div id="login" class="card">
-    <div class="row">
-     <input id="phone" placeholder="Admin number"><input id="password" type="password" placeholder="Password">
-     <button onclick="adminLogin()">Login</button>
-    </div>
-    <p id="err" class="muted"></p>
-   </div>
-   <div id="panel" style="display:none">
-    <div class="card row">
-     <button onclick="loadUsers()">Refresh Users</button>
-     <button onclick="logout()">Logout</button>
-    </div>
-    <div class="grid">
-     <div class="card">
-      <b>Linked Users</b>
-      <div id="users" class="users"></div>
-     </div>
-     <div>
-      <div class="card">
-       <b id="chatTitle">Select a user</b>
-       <div id="chats"></div>
-      </div>
-      <div class="card">
-       <b id="msgTitle">Messages</b>
-       <div id="messages"></div>
-      </div>
-     </div>
-    </div>
-   </div>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>SUIYAN ADMIN</title>
+
+<style>
+*{
+  box-sizing:border-box;
+}
+
+body{
+  margin:0;
+  background:#090d12;
+  color:#e8f1f8;
+  font-family:Arial,sans-serif;
+}
+
+.wrap{
+  max-width:1100px;
+  margin:auto;
+  padding:20px;
+}
+
+.card{
+  background:#111923;
+  border:1px solid #263544;
+  border-radius:14px;
+  padding:18px;
+  margin-bottom:16px;
+}
+
+input,
+button{
+  padding:12px;
+  border-radius:9px;
+  border:1px solid #34485a;
+  background:#0b121a;
+  color:#fff;
+}
+
+button{
+  cursor:pointer;
+}
+
+button:active{
+  transform:scale(.98);
+}
+
+.row{
+  display:flex;
+  gap:10px;
+  flex-wrap:wrap;
+}
+
+.users button,
+.chat{
+  display:block;
+  width:100%;
+  text-align:left;
+  margin:7px 0;
+}
+
+.grid{
+  display:grid;
+  grid-template-columns:300px 1fr;
+  gap:16px;
+}
+
+.msg{
+  padding:10px 12px;
+  margin:8px 0;
+  border-radius:10px;
+  background:#172331;
+  word-break:break-word;
+}
+
+.sent{
+  margin-left:25%;
+  background:#14301f;
+}
+
+.received{
+  margin-right:25%;
+}
+
+.preview{
+  color:#91a2b2;
+  font-size:13px;
+  margin-top:5px;
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+}
+
+.muted{
+  color:#91a2b2;
+  font-size:12px;
+}
+
+.empty{
+  color:#91a2b2;
+  padding:10px 0;
+}
+
+@media(max-width:700px){
+  .grid{
+    grid-template-columns:1fr;
+  }
+
+  .sent{
+    margin-left:10%;
+  }
+
+  .received{
+    margin-right:10%;
+  }
+}
+</style>
+</head>
+
+<body>
+
+<div class="wrap">
+
+<h2>🔐 SUIYAN ADMIN PANEL</h2>
+
+<!-- LOGIN -->
+<div id="login" class="card">
+
+  <div class="row">
+
+    <input
+      id="phone"
+      placeholder="Admin number"
+    >
+
+    <input
+      id="password"
+      type="password"
+      placeholder="Password"
+    >
+
+    <button onclick="adminLogin()">
+      Login
+    </button>
+
   </div>
-  <script>
-let token=localStorage.getItem('suiyan_admin_token')||'';
-function headers(){return {'Content-Type':'application/json','Authorization':'Bearer '+token}}
-function showPanel(){document.getElementById('login').style.display='none';document.getElementById('panel').style.display='block';loadUsers()}
-async function adminLogin(){const phone=document.getElementById('phone').value,password=document.getElementById('password').value;const r=await fetch('/api/admin/login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({phone,password})});const d=await r.json();if(!d.success){document.getElementById('err').textContent=d.message||'Login failed';return}token=d.token;localStorage.setItem('suiyan_admin_token',token);showPanel()}
-async function loadUsers(){const r=await fetch('/api/admin/users',{headers:headers()});if(r.status===401){localStorage.removeItem('suiyan_admin_token');token='';location.reload();return}const d=await r.json();document.getElementById('users').innerHTML=(d.users||[]).map(u=>`<button onclick="loadChats('${u.sessionId}','${u.phone}')">${u.phone} <span class="muted">${u.isConnected?'🟢 online':'🔴 offline'}</span></button>`).join('')||'<p class="muted">No linked users</p>'}
-async function loadChats(id,phone){document.getElementById('chatTitle').textContent='Chats — '+phone;const r=await fetch('/api/admin/chats/'+encodeURIComponent(id),{headers:headers()});const d=await r.json();document.getElementById('chats').innerHTML=(d.chats||[]).map(c=>`<button style="width:100%;text-align:left;margin:5px 0" onclick="loadMessages('${id}',${JSON.stringify(c.remoteJid)})"><b>${escapeHtml(c.chatName||c.remoteJid)}</b><br><span class="muted">${escapeHtml(c.phone||'')} • ${c.messageCount} messages</span></button>`).join('')||'<p class="muted">No synced chat history received yet.</p>'}
-async function loadMessages(id,jid){const r=await fetch('/api/admin/messages/'+encodeURIComponent(id)+'/'+encodeURIComponent(jid),{headers:headers()});const d=await r.json();document.getElementById('msgTitle').textContent='Messages';document.getElementById('messages').innerHTML=(d.messages||[]).map(m=>`<div class="msg ${m.fromMe?'sent':''}"><div>${escapeHtml(m.text||'')}</div><div class="muted">${m.fromMe?'Sent':'Received'} • ${new Date(Number(m.timestamp)*1000).toLocaleString()}</div></div>`).join('')||'<p class="muted">No messages</p>'}
-function escapeHtml(s){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[c]))}
-async function logout(){await fetch('/api/admin/logout',{method:'POST',headers:headers()});localStorage.removeItem('suiyan_admin_token');location.reload()}
-if(token)showPanel();
+
+  <p id="err" class="muted"></p>
+
+</div>
+
+
+<!-- ADMIN PANEL -->
+<div id="panel" style="display:none">
+
+  <div class="card row">
+
+    <button onclick="loadUsers()">
+      Refresh Users
+    </button>
+
+    <button onclick="logout()">
+      Logout
+    </button>
+
+  </div>
+
+
+  <div class="grid">
+
+    <!-- USERS -->
+    <div class="card">
+
+      <h3>Linked Users</h3>
+
+      <div
+        id="users"
+        class="users"
+      ></div>
+
+    </div>
+
+
+    <!-- CHATS + MESSAGES -->
+    <div>
+
+      <div class="card">
+
+        <h3 id="chatTitle">
+          Select a user
+        </h3>
+
+        <div id="chats"></div>
+
+      </div>
+
+
+      <div class="card">
+
+        <h3 id="msgTitle">
+          Messages
+        </h3>
+
+        <div id="messages"></div>
+
+      </div>
+
+    </div>
+
+  </div>
+
+</div>
+
+</div>
+
+
+<script>
+
+let token =
+  localStorage.getItem("suiyan_admin_token") || "";
+
+
+/* =========================
+   HEADERS
+========================= */
+
+function headers(){
+
+  return {
+    "Content-Type":"application/json",
+    "Authorization":"Bearer " + token
+  };
+
+}
+
+
+/* =========================
+   ESCAPE HTML
+========================= */
+
+function escapeHtml(value){
+
+  return String(value ?? "")
+    .replace(/&/g,"&amp;")
+    .replace(/</g,"&lt;")
+    .replace(/>/g,"&gt;")
+    .replace(/"/g,"&quot;")
+    .replace(/'/g,"&#039;");
+
+}
+
+
+/* =========================
+   SHOW PANEL
+========================= */
+
+function showPanel(){
+
+  document.getElementById("login")
+    .style.display="none";
+
+  document.getElementById("panel")
+    .style.display="block";
+
+  loadUsers();
+
+}
+
+
+/* =========================
+   ADMIN LOGIN
+========================= */
+
+async function adminLogin(){
+
+  const phone =
+    document.getElementById("phone")
+      .value
+      .trim();
+
+  const password =
+    document.getElementById("password")
+      .value;
+
+  if(!phone || !password){
+
+    document.getElementById("err")
+      .textContent="Enter admin number and password.";
+
+    return;
+
+  }
+
+  try{
+
+    const r = await fetch(
+      "/api/admin/login",
+      {
+        method:"POST",
+        headers:{
+          "Content-Type":"application/json"
+        },
+        body:JSON.stringify({
+          phone:phone,
+          password:password
+        })
+      }
+    );
+
+    const d = await r.json();
+
+    if(!d.success){
+
+      document.getElementById("err")
+        .textContent =
+          d.message || "Login failed";
+
+      return;
+
+    }
+
+    token = d.token;
+
+    localStorage.setItem(
+      "suiyan_admin_token",
+      token
+    );
+
+    showPanel();
+
+  }catch(e){
+
+    document.getElementById("err")
+      .textContent =
+        "Server connection failed.";
+
+  }
+
+}
+
+
+/* =========================
+   LOAD USERS
+========================= */
+
+async function loadUsers(){
+
+  try{
+
+    const r = await fetch(
+      "/api/admin/users",
+      {
+        headers:headers()
+      }
+    );
+
+    if(r.status === 401){
+
+      localStorage.removeItem(
+        "suiyan_admin_token"
+      );
+
+      token="";
+
+      location.reload();
+
+      return;
+
+    }
+
+    const d = await r.json();
+
+    const box =
+      document.getElementById("users");
+
+    box.innerHTML="";
+
+    if(!d.users || !d.users.length){
+
+      box.innerHTML =
+        '<p class="empty">No linked users</p>';
+
+      return;
+
+    }
+
+    d.users.forEach(u=>{
+
+      const button =
+        document.createElement("button");
+
+      button.innerHTML =
+        escapeHtml(u.phone) +
+        ' <span class="muted">' +
+        (u.isConnected
+          ? "🟢 online"
+          : "🔴 offline") +
+        "</span>";
+
+      button.onclick = function(){
+
+        loadChats(
+          u.sessionId,
+          u.phone
+        );
+
+      };
+
+      box.appendChild(button);
+
+    });
+
+  }catch(e){
+
+    document.getElementById("users")
+      .innerHTML =
+        '<p class="empty">Unable to load users.</p>';
+
+  }
+
+}
+
+
+/* =========================
+   LOAD CHATS
+========================= */
+
+async function loadChats(
+  sessionId,
+  phone
+){
+
+  document.getElementById("chatTitle")
+    .textContent =
+      "Chats — " + phone;
+
+  document.getElementById("chats")
+    .innerHTML =
+      '<p class="empty">Loading chats...</p>';
+
+  document.getElementById("messages")
+    .innerHTML =
+      '<p class="empty">Select a chat above.</p>';
+
+  try{
+
+    const r = await fetch(
+      "/api/admin/chats/" +
+      encodeURIComponent(sessionId),
+      {
+        headers:headers()
+      }
+    );
+
+    const d = await r.json();
+
+    const box =
+      document.getElementById("chats");
+
+    box.innerHTML="";
+
+    if(!d.chats || !d.chats.length){
+
+      box.innerHTML =
+        '<p class="empty">' +
+        'No synced chat history received yet.' +
+        '</p>';
+
+      return;
+
+    }
+
+
+    /* CREATE CHAT BUTTONS */
+
+    d.chats.forEach(c=>{
+
+      const button =
+        document.createElement("button");
+
+      button.className="chat";
+
+      const name =
+        c.chatName ||
+        c.phone ||
+        c.remoteJid;
+
+      const jid =
+        c.remoteJid;
+
+      const count =
+        c.messageCount || 0;
+
+      /*
+       * Preview text
+       * Agar backend preview bhej raha hai
+       * to yaha show hoga.
+       */
+
+      const preview =
+        c.lastMessage ||
+        c.preview ||
+        "Tap to view messages";
+
+      button.innerHTML =
+
+        "<b>" +
+        escapeHtml(name) +
+        "</b>" +
+
+        '<div class="preview">' +
+        escapeHtml(preview) +
+        "</div>" +
+
+        '<span class="muted">' +
+        escapeHtml(c.phone || jid) +
+        " • " +
+        count +
+        " messages" +
+        "</span>";
+
+      button.onclick = function(){
+
+        loadMessages(
+          sessionId,
+          jid,
+          name
+        );
+
+      };
+
+      box.appendChild(button);
+
+    });
+
+  }catch(e){
+
+    document.getElementById("chats")
+      .innerHTML =
+        '<p class="empty">' +
+        'Unable to load chats.' +
+        '</p>';
+
+  }
+
+}
+
+
+/* =========================
+   LOAD MESSAGES
+========================= */
+
+async function loadMessages(
+  sessionId,
+  remoteJid,
+  chatName
+){
+
+  document.getElementById("msgTitle")
+    .textContent =
+      "Messages — " + chatName;
+
+  document.getElementById("messages")
+    .innerHTML =
+      '<p class="empty">Loading messages...</p>';
+
+  try{
+
+    const url =
+      "/api/admin/messages/" +
+      encodeURIComponent(sessionId) +
+      "/" +
+      encodeURIComponent(remoteJid);
+
+    const r =
+      await fetch(
+        url,
+        {
+          headers:headers()
+        }
+      );
+
+    const d =
+      await r.json();
+
+    const box =
+      document.getElementById("messages");
+
+    box.innerHTML="";
+
+
+    if(!d.messages || !d.messages.length){
+
+      box.innerHTML =
+        '<p class="empty">No messages.</p>';
+
+      return;
+
+    }
+
+
+    /* SHOW EVERY MESSAGE */
+
+    d.messages.forEach(m=>{
+
+      const div =
+        document.createElement("div");
+
+      div.className =
+        "msg " +
+        (m.fromMe
+          ? "sent"
+          : "received");
+
+
+      let text =
+        m.text ||
+        m.body ||
+        "[media / no text]";
+
+
+      let time="";
+
+      if(m.timestamp){
+
+        const date =
+          new Date(
+            Number(m.timestamp) * 1000
+          );
+
+        if(!isNaN(date.getTime())){
+
+          time =
+            date.toLocaleString();
+
+        }
+
+      }
+
+
+      div.innerHTML =
+
+        "<div>" +
+        escapeHtml(text) +
+        "</div>" +
+
+        '<div class="muted">' +
+
+        (m.fromMe
+          ? "📤 Sent"
+          : "📥 Received") +
+
+        (time
+          ? " • " + escapeHtml(time)
+          : "") +
+
+        "</div>";
+
+
+      box.appendChild(div);
+
+    });
+
+
+    /* AUTO SCROLL */
+
+    box.scrollTop =
+      box.scrollHeight;
+
+  }catch(e){
+
+    document.getElementById("messages")
+      .innerHTML =
+        '<p class="empty">' +
+        'Unable to load messages.' +
+        '</p>';
+
+  }
+
+}
+
+
+/* =========================
+   LOGOUT
+========================= */
+
+async function logout(){
+
+  try{
+
+    await fetch(
+      "/api/admin/logout",
+      {
+        method:"POST",
+        headers:headers()
+      }
+    );
+
+  }catch(e){}
+
+  localStorage.removeItem(
+    "suiyan_admin_token"
+  );
+
+  token="";
+
+  location.reload();
+
+}
+
+
+/* =========================
+   AUTO LOGIN
+========================= */
+
+if(token){
+
+  showPanel();
+
+}
+
 </script>
- </body>
+
+</body>
 </html>
