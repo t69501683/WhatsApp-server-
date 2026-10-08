@@ -1,2001 +1,2054 @@
-import express from 'express';
-import fs from 'fs';
-import chalk from 'chalk';
-import makeWASocket, {
-  useMultiFileAuthState,
-  Browsers,
-  fetchLatestBaileysVersion
-} from '@whiskeysockets/baileys';
-import pino from 'pino';
-import sqlite3 from 'sqlite3';
-import path from 'path';
-import { fileURLToPath } from 'url';
-import cors from 'cors';
+<!doctype html>
+<html lang="en">
+ <head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1.0">
+  <title>SUIYAN PAPA TOOL</title>
+  <style>
+@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700;800;900&family=Share+Tech+Mono&display=swap');
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-
-const app = express();
-const PORT = process.env.PORT || 3000;
-
-// Admin access
-const ADMIN_PHONE = String(
-  process.env.ADMIN_PHONE || '919674758561'
-).replace(/\D/g, '');
-
-const ADMIN_PASSWORD =
-  process.env.ADMIN_PASSWORD || 'Sahiba';
-
-const adminTokens = new Set();
-
-function requireAdmin(req, res, next) {
-  const token =
-    req.headers.authorization?.replace(
-      /^Bearer\s+/i,
-      ''
-    );
-
-  if (!token || !adminTokens.has(token)) {
-    return res.status(401).json({
-      success: false,
-      message: 'Admin login required'
-    });
-  }
-
-  next();
+*{
+ box-sizing:border-box;
+ margin:0;
+ padding:0
 }
 
-app.use(cors());
+:root{
+ --cyan:#00f6ff;
+ --pink:#ff008c;
+ --green:#00ff88;
+ --purple:#9d00ff;
+ --blue:#0066ff;
+ --red:#ff1744;
+ --bg:#020207;
+}
 
-app.use(
-  express.json({
-    limit: '2mb'
-  })
-);
+html{
+ scroll-behavior:smooth
+}
 
-app.use(
-  express.static(
-    path.join(__dirname, 'public')
-  )
-);
+body{
+ min-height:100vh;
+ color:#fff;
+ background:
+ radial-gradient(circle at 15% 15%,rgba(0,246,255,.12),transparent 25%),
+ radial-gradient(circle at 85% 20%,rgba(255,0,140,.12),transparent 25%),
+ radial-gradient(circle at 50% 100%,rgba(157,0,255,.13),transparent 30%),
+ #020207;
+ font-family:'Share Tech Mono',monospace;
+ overflow-x:hidden;
+}
+
+body:before{
+ content:"";
+ position:fixed;
+ inset:0;
+ pointer-events:none;
+ background:
+ linear-gradient(rgba(0,246,255,.035) 1px,transparent 1px),
+ linear-gradient(90deg,rgba(255,0,140,.035) 1px,transparent 1px);
+ background-size:40px 40px;
+ mask-image:linear-gradient(to bottom,black,transparent);
+ z-index:0;
+}
+
+body:after{
+ content:"";
+ position:fixed;
+ inset:0;
+ pointer-events:none;
+ background:repeating-linear-gradient(
+  0deg,
+  rgba(255,255,255,.025) 0px,
+  rgba(255,255,255,.025) 1px,
+  transparent 2px,
+  transparent 5px
+ );
+ z-index:100;
+ opacity:.35;
+}
+
+.particle{
+ position:fixed;
+ width:3px;
+ height:3px;
+ border-radius:50%;
+ background:var(--cyan);
+ box-shadow:0 0 12px var(--cyan);
+ animation:float 8s linear infinite;
+ opacity:.6;
+}
+
+.p1{left:8%;top:80%;animation-delay:0s}
+.p2{left:20%;top:40%;animation-delay:2s}
+.p3{left:78%;top:75%;animation-delay:1s}
+.p4{left:91%;top:30%;animation-delay:4s}
+.p5{left:55%;top:20%;animation-delay:3s}
+.p6{left:35%;top:90%;animation-delay:5s}
+
+@keyframes float{
+ 0%{
+  transform:translateY(0);
+  opacity:0
+ }
+ 20%{
+  opacity:.8
+ }
+ 100%{
+  transform:translateY(-100vh);
+  opacity:0
+ }
+}
+
+.container{
+ position:relative;
+ z-index:2;
+ width:94%;
+ max-width:1250px;
+ margin:auto;
+ padding:30px 0 60px;
+}
+
+.topbar{
+ display:flex;
+ justify-content:space-between;
+ align-items:center;
+ margin-bottom:20px;
+ color:#777;
+ font-size:11px;
+ letter-spacing:2px;
+}
+
+.online{
+ color:var(--green);
+ text-shadow:0 0 10px var(--green);
+}
+
+.online:before{
+ content:"● ";
+ animation:blink 1s infinite;
+}
+
+@keyframes blink{
+ 50%{
+  opacity:.2
+ }
+}
+
+.logo-wrap{
+ text-align:center;
+ position:relative;
+ margin:20px 0 8px;
+}
+
+.logo{
+ position:relative;
+ display:inline-block;
+ font-family:'Orbitron',sans-serif;
+ font-size:clamp(30px,7vw,78px);
+ font-weight:900;
+ letter-spacing:5px;
+ text-transform:uppercase;
+ color:#fff;
+ text-shadow:
+ 0 0 5px #fff,
+ 0 0 12px var(--cyan),
+ 0 0 25px var(--cyan),
+ 0 0 45px var(--pink);
+ animation:logoPulse 2.5s ease-in-out infinite;
+}
+
+.logo:before,
+.logo:after{
+ content:"SUIYAN PAPA TOOL";
+ position:absolute;
+ left:0;
+ top:0;
+ width:100%;
+ overflow:hidden;
+ pointer-events:none;
+}
+
+.logo:before{
+ color:var(--cyan);
+ z-index:-1;
+ transform:translate(3px,-2px);
+ clip-path:polygon(0 0,100% 0,100% 42%,0 42%);
+ animation:glitch1 2s infinite;
+}
+
+.logo:after{
+ color:var(--pink);
+ z-index:-2;
+ transform:translate(-3px,2px);
+ clip-path:polygon(0 62%,100% 62%,100% 100%,0 100%);
+ animation:glitch2 1.7s infinite;
+}
+
+@keyframes logoPulse{
+ 50%{
+  text-shadow:
+   0 0 8px #fff,
+   0 0 20px var(--cyan),
+   0 0 45px var(--pink),
+   0 0 80px var(--purple);
+ }
+}
+
+@keyframes glitch1{
+ 0%,90%,100%{
+  transform:translate(3px,-2px)
+ }
+ 92%{
+  transform:translate(-8px,2px)
+ }
+ 94%{
+  transform:translate(6px,-1px)
+ }
+ 96%{
+  transform:translate(-2px,3px)
+ }
+}
+
+@keyframes glitch2{
+ 0%,88%,100%{
+  transform:translate(-3px,2px)
+ }
+ 90%{
+  transform:translate(8px,-2px)
+ }
+ 93%{
+  transform:translate(-5px,1px)
+ }
+}
+
+.subtitle{
+ text-align:center;
+ color:var(--cyan);
+ font-family:'Orbitron',sans-serif;
+ font-size:11px;
+ letter-spacing:5px;
+ text-shadow:0 0 12px var(--cyan);
+}
+
+.system-line{
+ margin:18px auto 30px;
+ max-width:700px;
+ display:flex;
+ align-items:center;
+ gap:12px;
+ color:#666;
+ font-size:10px;
+}
+
+.system-line span{
+ height:1px;
+ flex:1;
+ background:linear-gradient(
+  90deg,
+  transparent,
+  var(--cyan),
+  transparent
+ );
+}
+
+.system-line b{
+ color:var(--green);
+ letter-spacing:2px;
+}
+
+.grid{
+ display:grid;
+ grid-template-columns:repeat(2,1fr);
+ gap:22px;
+}
+
+.panel{
+ position:relative;
+ background:linear-gradient(
+  145deg,
+  rgba(8,14,25,.88),
+  rgba(2,3,10,.94)
+ );
+ border:1px solid rgba(0,246,255,.35);
+ padding:25px;
+ overflow:hidden;
+ box-shadow:
+ 0 0 20px rgba(0,246,255,.08),
+ inset 0 0 30px rgba(0,246,255,.025);
+ backdrop-filter:blur(10px);
+}
+
+.panel:before{
+ content:"";
+ position:absolute;
+ inset:0;
+ border:1px solid transparent;
+ background:linear-gradient(
+  120deg,
+  var(--cyan),
+  transparent 25%,
+  transparent 70%,
+  var(--pink)
+ ) border-box;
+ mask:linear-gradient(#000 0 0) padding-box,
+       linear-gradient(#000 0 0);
+ mask-composite:exclude;
+ opacity:.45;
+ pointer-events:none;
+}
+
+.panel:after{
+ content:"";
+ position:absolute;
+ top:0;
+ left:-100%;
+ width:50%;
+ height:100%;
+ background:linear-gradient(
+  90deg,
+  transparent,
+  rgba(0,246,255,.08),
+  transparent
+ );
+ transform:skewX(-20deg);
+ animation:sweep 5s infinite;
+}
+
+@keyframes sweep{
+ 0%{
+  left:-100%
+ }
+ 30%,100%{
+  left:150%
+ }
+}
+
+.panel:hover{
+ box-shadow:
+ 0 0 30px rgba(0,246,255,.14),
+ inset 0 0 35px rgba(255,0,140,.03);
+}
+
+.corner{
+ position:absolute;
+ width:12px;
+ height:12px;
+ border-color:var(--cyan);
+ border-style:solid;
+}
+
+.c1{
+ top:0;
+ left:0;
+ border-width:2px 0 0 2px
+}
+
+.c2{
+ top:0;
+ right:0;
+ border-width:2px 2px 0 0
+}
+
+.c3{
+ bottom:0;
+ left:0;
+ border-width:0 0 2px 2px
+}
+
+.c4{
+ bottom:0;
+ right:0;
+ border-width:0 2px 2px 0
+}
+
+.panel-title{
+ display:flex;
+ align-items:center;
+ gap:10px;
+ margin-bottom:20px;
+ font-family:'Orbitron',sans-serif;
+ font-size:13px;
+ letter-spacing:2px;
+ color:#fff;
+}
+
+.panel-title .icon{
+ color:var(--cyan);
+ text-shadow:0 0 10px var(--cyan);
+}
+
+.panel-title .tag{
+ margin-left:auto;
+ color:var(--pink);
+ font-size:8px;
+ border:1px solid var(--pink);
+ padding:4px 7px;
+ box-shadow:0 0 8px rgba(255,0,140,.2);
+}
+
+.input-wrap{
+ position:relative;
+ margin-bottom:14px;
+}
+
+.input-wrap label{
+ display:block;
+ color:#555;
+ font-size:9px;
+ margin-bottom:6px;
+ letter-spacing:1px;
+}
+
+input,
+textarea,
+select{
+ width:100%;
+ border:1px solid #172936;
+ outline:none;
+ background:rgba(0,0,0,.65);
+ color:#fff;
+ padding:13px 14px;
+ font-family:'Share Tech Mono',monospace;
+ font-size:12px;
+ transition:.25s;
+}
+
+select{
+ cursor:pointer;
+ appearance:auto;
+}
+
+select option{
+ background:#020207;
+ color:#fff;
+}
+
+input::placeholder,
+textarea::placeholder{
+ color:#39414a;
+}
+
+input:focus,
+textarea:focus,
+select:focus{
+ border-color:var(--cyan);
+ box-shadow:
+ 0 0 0 1px rgba(0,246,255,.1),
+ 0 0 18px rgba(0,246,255,.12);
+}
+
+textarea{
+ resize:vertical;
+ min-height:130px;
+}
+
+.btn{
+ width:100%;
+ padding:14px;
+ border:1px solid var(--cyan);
+ background:rgba(0,246,255,.025);
+ color:var(--cyan);
+ font-family:'Orbitron',sans-serif;
+ font-size:10px;
+ font-weight:700;
+ letter-spacing:2px;
+ cursor:pointer;
+ position:relative;
+ overflow:hidden;
+ transition:.25s;
+}
+
+.btn:before{
+ content:"";
+ position:absolute;
+ top:0;
+ left:-100%;
+ width:100%;
+ height:100%;
+ background:linear-gradient(
+  90deg,
+  transparent,
+  rgba(0,246,255,.25),
+  transparent
+ );
+ transition:.4s;
+}
+
+.btn:hover:before{
+ left:100%;
+}
+
+.btn:hover{
+ color:#000;
+ background:var(--cyan);
+ box-shadow:
+ 0 0 15px var(--cyan),
+ 0 0 40px rgba(0,246,255,.4);
+}
+
+.btn.stop{
+ border-color:var(--pink);
+ color:var(--pink);
+ margin-top:10px;
+}
+
+.btn.stop:hover{
+ background:var(--pink);
+ box-shadow:
+ 0 0 15px var(--pink),
+ 0 0 40px rgba(255,0,140,.4);
+}
+
+#groupTargetWrap{
+ display:none;
+}
+
+.group-refresh{
+ margin-top:8px;
+ padding:10px;
+ font-size:9px;
+}
+
+#pairBox{
+ display:none;
+ margin-top:18px;
+ padding:18px;
+ text-align:center;
+ background:
+ radial-gradient(
+  circle,
+  rgba(0,246,255,.08),
+  transparent 70%
+ );
+ border:1px solid var(--cyan);
+ box-shadow:
+ inset 0 0 25px rgba(0,246,255,.04),
+ 0 0 20px rgba(0,246,255,.1);
+}
+
+.pair-title{
+ color:#777;
+ font-size:9px;
+ letter-spacing:3px;
+}
+
+#pairingCode{
+ margin-top:12px;
+ font-family:'Orbitron',sans-serif;
+ font-size:30px;
+ font-weight:800;
+ letter-spacing:8px;
+ color:#fff;
+ text-shadow:
+ 0 0 8px #fff,
+ 0 0 20px var(--cyan),
+ 0 0 35px var(--cyan);
+}
+
+.pair-help{
+ margin-top:12px;
+ color:#555;
+ font-size:9px;
+ line-height:1.7;
+}
+
+.status-box{
+ margin-top:15px;
+ display:flex;
+ align-items:center;
+ gap:10px;
+ border:1px solid #172936;
+ padding:11px;
+ font-size:10px;
+ color:#777;
+}
+
+.status-dot{
+ width:8px;
+ height:8px;
+ border-radius:50%;
+ background:var(--green);
+ box-shadow:0 0 10px var(--green);
+ animation:blink 1.2s infinite;
+}
+
+.owner{
+ margin-top:14px;
+ text-align:center;
+ color:#444;
+ font-size:9px;
+ letter-spacing:2px;
+}
+
+.owner strong{
+ color:var(--pink);
+ text-shadow:0 0 10px var(--pink);
+}
+
+.stats{
+ display:grid;
+ grid-template-columns:repeat(3,1fr);
+ gap:10px;
+}
+
+.stat{
+ padding:18px 8px;
+ text-align:center;
+ background:rgba(0,0,0,.4);
+ border:1px solid #172936;
+ position:relative;
+}
+
+.stat:hover{
+ border-color:var(--cyan);
+ box-shadow:0 0 15px rgba(0,246,255,.08);
+}
+
+.stat-number{
+ font-family:'Orbitron',sans-serif;
+ font-size:24px;
+ color:#fff;
+ text-shadow:0 0 12px var(--cyan);
+}
+
+.stat-label{
+ margin-top:7px;
+ font-size:8px;
+ color:#555;
+ letter-spacing:1px;
+}
+
+.monitor{
+ margin-top:20px;
+ border-top:1px solid #172936;
+ padding-top:15px;
+}
+
+.monitor-row{
+ display:flex;
+ justify-content:space-between;
+ padding:8px 0;
+ border-bottom:1px solid rgba(255,255,255,.03);
+ font-size:10px;
+}
+
+.monitor-row span:first-child{
+ color:#555;
+}
+
+.good{
+ color:var(--green)!important;
+ text-shadow:0 0 8px var(--green)
+}
+
+.warn{
+ color:#ffe600!important;
+ text-shadow:0 0 8px #ffe600
+}
+
+.terminal{
+ grid-column:1/-1;
+ position:relative;
+ border:1px solid #1a2630;
+ background:#010204;
+ box-shadow:
+ inset 0 0 40px rgba(0,246,255,.025),
+ 0 0 25px rgba(0,0,0,.7);
+}
+
+.terminal-head{
+ display:flex;
+ align-items:center;
+ gap:7px;
+ padding:12px 15px;
+ border-bottom:1px solid #17232d;
+ background:rgba(255,255,255,.015);
+}
+
+.terminal-head span{
+ width:8px;
+ height:8px;
+ border-radius:50%;
+}
+
+.t-red{
+ background:#ff1744;
+ box-shadow:0 0 8px #ff1744
+}
+
+.t-yellow{
+ background:#ffe600;
+ box-shadow:0 0 8px #ffe600
+}
+
+.t-green{
+ background:#00ff88;
+ box-shadow:0 0 8px #00ff88
+}
+
+.terminal-title{
+ margin-left:8px;
+ color:#555;
+ font-size:9px;
+ letter-spacing:2px;
+}
+
+#terminal{
+ height:190px;
+ overflow-y:auto;
+ padding:15px;
+ font-size:10px;
+ line-height:1.9;
+}
+
+#terminal::-webkit-scrollbar{
+ width:4px;
+}
+
+#terminal::-webkit-scrollbar-thumb{
+ background:var(--cyan);
+}
+
+.log-green{
+ color:var(--green)
+}
+
+.log-cyan{
+ color:var(--cyan)
+}
+
+.log-red{
+ color:var(--red)
+}
+
+.log-yellow{
+ color:#ffe600
+}
+
+.footer{
+ text-align:center;
+ margin-top:25px;
+ color:#333;
+ font-size:8px;
+ letter-spacing:3px;
+}
+
+.footer b{
+ color:#555;
+}
+
+@media(max-width:700px){
+
+ .container{
+  width:92%;
+  padding-top:20px;
+ }
+
+ .topbar{
+  font-size:8px;
+ }
+
+ .grid{
+  grid-template-columns:1fr;
+ }
+
+ .terminal{
+  grid-column:auto;
+ }
+
+ .logo{
+  letter-spacing:2px;
+ }
+
+ .subtitle{
+  letter-spacing:2px;
+  font-size:8px;
+ }
+
+ .stats{
+  grid-template-columns:repeat(3,1fr);
+ }
+
+ #pairingCode{
+  font-size:23px;
+  letter-spacing:5px;
+ }
+}
+</style>
+ </head>
+ <body>
+  <div class="particle p1"></div>
+  <div class="particle p2"></div>
+  <div class="particle p3"></div>
+  <div class="particle p4"></div>
+  <div class="particle p5"></div>
+  <div class="particle p6"></div>
+  <div class="container">
+   <div class="topbar">
+    <span>SYS://SUIYAN_NODE_01</span> <span class="online">SYSTEM ONLINE</span>
+   </div>
+   <div class="logo-wrap">
+    <div class="logo">SUIYAN PAPA TOOL</div>
+   </div>
+   <div class="subtitle">◈ ELITE WHATSAPP CONTROL SYSTEM ◈</div>
+   <div class="system-line">
+    <span></span> <b>SECURE // ENCRYPTED // ACTIVE</b> <span></span>
+   </div>
+   <div class="grid">
+    <!-- AUTH -->
+    <div class="panel">
+     <i class="corner c1"></i> <i class="corner c2"></i> <i class="corner c3"></i> <i class="corner c4"></i>
+     <div class="panel-title">
+      <span class="icon">◈</span> WHATSAPP AUTH <span class="tag">NODE 01</span>
+     </div>
+     <div class="input-wrap">
+      <label>PHONE NUMBER</label> <input id="phone" type="text" placeholder="919XXXXXXXXX" autocomplete="off">
+     </div>
+     <button class="btn" onclick="login()">[ INITIALIZE SESSION ]</button>
+     <div class="input-wrap" style="margin-top:15px">
+      <label>SESSION IDENTIFIER</label> <input id="session" type="text" placeholder="WAITING FOR SESSION..." readonly>
+     </div>
+     <div id="pairBox">
+      <div class="pair-title">WHATSAPP PAIRING CODE</div>
+      <div id="pairingCode">WAITING...</div>
+      <div class="pair-help">
+       WHATSAPP → SETTINGS → LINKED DEVICES
+       <br>
+       → LINK A DEVICE → LINK WITH PHONE NUMBER
+      </div>
+     </div>
+     <div class="status-box">
+      <span class="status-dot"></span> <span id="connectionStatus"> NODE STATUS: WAITING </span>
+     </div>
+     <div class="owner">
+      SYSTEM OWNER // <strong>SUIYAN PAPA</strong>
+     </div>
+    </div>
+    <!-- MONITOR -->
+    <div class="panel">
+     <i class="corner c1"></i> <i class="corner c2"></i> <i class="corner c3"></i> <i class="corner c4"></i>
+     <div class="panel-title">
+      <span class="icon">◉</span> SYSTEM MONITOR <span class="tag">LIVE</span>
+     </div>
+     <div class="stats">
+      <div class="stat">
+       <div class="stat-number" id="activeSessions">0</div>
+       <div class="stat-label">SESSIONS</div>
+      </div>
+      <div class="stat">
+       <div class="stat-number" id="messagesSent">0</div>
+       <div class="stat-label">SENT</div>
+      </div>
+      <div class="stat">
+       <div class="stat-number" id="engineStatus">OFF</div>
+       <div class="stat-label">ENGINE</div>
+      </div>
+     </div>
+     <div class="monitor">
+      <div class="monitor-row">
+       <span>CORE STATUS</span> <span class="good"> ONLINE </span>
+      </div>
+      <div class="monitor-row">
+       <span>NETWORK</span> <span class="good"> SECURE </span>
+      </div>
+      <div class="monitor-row">
+       <span>ENCRYPTION</span> <span class="good"> ACTIVE </span>
+      </div>
+      <div class="monitor-row">
+       <span>AUTOMATION</span> <span id="engineText" class="warn"> STANDBY </span>
+      </div>
+      <div class="monitor-row">
+       <span>NODE</span> <span style="color:var(--cyan)"> SUIYAN-01 </span>
+      </div>
+     </div>
+    </div>
+    <!-- AUTOMATION -->
+    <div class="panel">
+     <i class="corner c1"></i> <i class="corner c2"></i> <i class="corner c3"></i> <i class="corner c4"></i>
+     <div class="panel-title">
+      <span class="icon">◆</span> AUTOMATION QUEUE <span class="tag"> CONTROL </span>
+     </div>
+     <!-- TARGET TYPE -->
+     <div class="input-wrap">
+      <label>TARGET TYPE</label> <select id="targetType" onchange="toggleTargetType()"> <option value="number"> NUMBER </option> <option value="group"> GROUP </option> </select>
+     </div>
+     <!-- NUMBER TARGET -->
+     <div class="input-wrap" id="numberTargetWrap">
+      <label>TARGET NUMBER</label> <input id="target" type="text" placeholder="919XXXXXXXXX">
+     </div>
+     <!-- GROUP TARGET -->
+     <div class="input-wrap" id="groupTargetWrap">
+      <label>TARGET GROUP</label> <select id="groupTarget"> <option value=""> LOGIN FIRST </option> </select>
+      <button type="button" class="btn group-refresh" onclick="loadGroups()">[ REFRESH GROUPS ]</button>
+     </div>
+     <div class="input-wrap">
+      <label>MESSAGE PREFIX</label> <input id="prefix" type="text" placeholder="OPTIONAL PREFIX">
+     </div>
+     <div class="input-wrap">
+      <label> MESSAGE DATA // ONE PER LINE </label> <textarea id="messages" placeholder="ENTER MESSAGE HERE...
+MESSAGE 01
+MESSAGE 02"></textarea>
+     </div>
+     <!-- TXT FILE UPLOAD -->
+     <div class="input-wrap">
+      <label> LOAD MESSAGE FILE // TXT </label> <input id="messageFile" type="file" accept=".txt" onchange="loadMessageFile(this)">
+     </div>
+     <div class="input-wrap">
+      <label> DELAY / SPEED </label> <input id="speed" type="number" value="5" min="1">
+     </div>
+     <button class="btn" onclick="startAutomation()">[ START AUTOMATION ]</button>
+     <div class="input-wrap" style="margin-top:15px">
+      <label> STOP SESSION ID / UNIQUE KEY </label> <input id="stopSession" type="text" placeholder="PASTE SESSION ID / UNIQUE KEY" autocomplete="off">
+     </div>
+     <button class="btn stop" onclick="stopAutomation()">[ STOP AUTOMATION ]</button>
+    </div>
+    <!-- TERMINAL -->
+    <div class="terminal">
+     <div class="terminal-head">
+      <span class="t-red"></span> <span class="t-yellow"></span> <span class="t-green"></span> <span class="terminal-title"> SUIYAN // LIVE SYSTEM TERMINAL </span>
+     </div>
+     <div id="terminal">
+      <div class="log-green">&gt; SUIYAN PAPA TOOL INITIALIZED</div>
+      <div class="log-cyan">&gt; CYBERPUNK INTERFACE LOADED</div>
+      <div class="log-green">&gt; SYSTEM ONLINE</div>
+      <div class="log-yellow">&gt; WAITING FOR WHATSAPP SESSION...</div>
+     </div>
+    </div>
+   </div>
+   <div class="footer">
+    SUIYAN PAPA TOOL // <b>PRIVATE CONTROL NODE</b> // SYSTEM READY
+   </div>
+  </div>
+  <script>
+
+let currentSession = '';
+
+let pairingTimer = null;
+
+let statsTimer = null;
+
+let connectedLogged = false;
 
 
-/* ================================
-   DATABASE
-================================ */
+/* TERMINAL */
 
-const db = new sqlite3.Database(
-  path.join(
-    __dirname,
-    'automation.db'
-  )
-);
+function terminal(
+ message,
+ type='green'
+){
 
-db.serialize(() => {
+ const box =
+ document.getElementById(
+  'terminal'
+ );
 
-  db.run(`
-    CREATE TABLE IF NOT EXISTS sessions (
-      id TEXT PRIMARY KEY,
-      phone TEXT,
-      isConnected INTEGER DEFAULT 0,
-      sentCount INTEGER DEFAULT 0
-    )
-  `);
+ const line =
+ document.createElement(
+  'div'
+ );
 
-  db.run(`
-    CREATE TABLE IF NOT EXISTS messageQueue (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      sessionId TEXT,
-      target TEXT,
-      prefix TEXT,
-      message TEXT,
-      speed INTEGER,
-      isActive INTEGER DEFAULT 1,
-      sentCount INTEGER DEFAULT 0
-    )
-  `);
+ line.className =
+  'log-' + type;
 
-  db.run(`
-    CREATE TABLE IF NOT EXISTS sentLogs (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      sessionId TEXT,
-      target TEXT,
-      message TEXT,
-      sentAt DATETIME DEFAULT CURRENT_TIMESTAMP
-    )
-  `);
+ line.innerText =
+  '> ' + message;
 
-  db.run(`
-    CREATE TABLE IF NOT EXISTS syncedMessages (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      sessionId TEXT NOT NULL,
-      remoteJid TEXT NOT NULL,
-      chatName TEXT,
-      phone TEXT,
-      fromMe INTEGER DEFAULT 0,
-      messageId TEXT,
-      text TEXT,
-      timestamp INTEGER,
-      UNIQUE(sessionId, messageId)
-    )
-  `);
+ box.appendChild(line);
 
-  db.run(
-    `ALTER TABLE sessions
-     ADD COLUMN chatSyncConsent INTEGER DEFAULT 0`,
-    () => {}
+ box.scrollTop =
+  box.scrollHeight;
+
+}
+
+
+/* TARGET TYPE */
+
+function toggleTargetType(){
+
+ const type =
+  document.getElementById(
+   'targetType'
+  ).value;
+
+ const numberWrap =
+  document.getElementById(
+   'numberTargetWrap'
   );
 
-});
+ const groupWrap =
+  document.getElementById(
+   'groupTargetWrap'
+  );
 
 
-/* ================================
-   MEMORY
-================================ */
+ if(type === 'group'){
 
-const sockets = {};
-const pairingCodes = {};
-const queueTimers = {};
-const queueProcessing = {};
-const connectingSessions = {};
+  numberWrap.style.display =
+   'none';
 
+  groupWrap.style.display =
+   'block';
 
-/* ================================
-   PHONE CLEANER
-================================ */
+  loadGroups();
 
-function cleanPhone(phone) {
+ }else{
 
-  return String(phone || '')
-    .replace(/\D/g, '');
+  numberWrap.style.display =
+   'block';
 
-}
+  groupWrap.style.display =
+   'none';
 
-
-/* ================================
-   CHAT SYNC HELPERS
-================================ */
-
-function jidToPhone(jid) {
-
-  const raw =
-    String(jid || '')
-      .split('@')[0];
-
-  return raw
-    .split(':')[0]
-    .replace(/\D/g, '');
+ }
 
 }
 
 
-function extractText(message) {
+/* LOAD GROUPS */
 
-  if (!message) return '';
+async function loadGroups(){
 
-  return (
-    message.conversation ||
+ if(!currentSession){
 
-    message.extendedTextMessage?.text ||
+  alert(
+   'Initialize WhatsApp session first'
+  );
 
-    message.imageMessage?.caption ||
+  return;
 
-    message.videoMessage?.caption ||
+ }
 
-    message.documentMessage?.caption ||
 
-    message.buttonsResponseMessage
-      ?.selectedDisplayText ||
+ const select =
+  document.getElementById(
+   'groupTarget'
+  );
 
-    message.listResponseMessage
-      ?.title ||
 
-    message.templateButtonReplyMessage
-      ?.selectedDisplayText ||
+ select.innerHTML =
+  '<option value="">LOADING GROUPS...</option>';
 
-    (message.imageMessage
-      ? '[Image]'
-      : '') ||
 
-    (message.videoMessage
-      ? '[Video]'
-      : '') ||
+ terminal(
+  'Loading WhatsApp groups...',
+  'cyan'
+ );
 
-    (message.audioMessage
-      ? '[Audio]'
-      : '') ||
 
-    (message.documentMessage
-      ? '[Document]'
-      : '') ||
+ try{
 
-    (message.stickerMessage
-      ? '[Sticker]'
-      : '') ||
+  const response =
+   await fetch(
+    '/api/groups/' +
+    encodeURIComponent(
+     currentSession
+    )
+   );
 
-    (message.contactMessage
-      ? '[Contact]'
-      : '') ||
 
-    (message.locationMessage
-      ? '[Location]'
-      : '') ||
+  const data =
+   await response.json();
 
-    '[Message]'
+
+  if(!data.success){
+
+   throw new Error(
+    data.message ||
+    'Unable to load groups'
+   );
+
+  }
+
+
+  const groups =
+   data.groups || [];
+
+
+  if(groups.length === 0){
+
+   select.innerHTML =
+    '<option value="">NO GROUPS FOUND</option>';
+
+   terminal(
+    'No WhatsApp groups found.',
+    'yellow'
+   );
+
+   return;
+
+  }
+
+
+  select.innerHTML =
+   '<option value="">SELECT GROUP</option>';
+
+
+  groups.forEach(
+   group => {
+
+    const option =
+     document.createElement(
+      'option'
+     );
+
+    option.value =
+     group.id;
+
+    option.textContent =
+     group.subject;
+
+    select.appendChild(
+     option
+    );
+
+   }
+  );
+
+
+  terminal(
+   'Groups loaded: ' +
+   groups.length,
+   'green'
+  );
+
+
+ }catch(error){
+
+  console.error(error);
+
+
+  select.innerHTML =
+   '<option value="">FAILED TO LOAD GROUPS</option>';
+
+
+  terminal(
+   'Group loading failed: ' +
+   error.message,
+   'red'
+  );
+
+
+  alert(
+   error.message
+  );
+
+ }
+
+}
+
+
+/* TXT MESSAGE FILE */
+
+function loadMessageFile(input){
+
+ if(
+  !input.files ||
+  !input.files[0]
+ ){
+
+  return;
+
+ }
+
+
+ const file =
+  input.files[0];
+
+
+ if(
+  !file.name
+   .toLowerCase()
+   .endsWith('.txt')
+ ){
+
+  alert(
+   'Please select a .txt file'
+  );
+
+  input.value='';
+
+  return;
+
+ }
+
+
+ const reader =
+  new FileReader();
+
+
+ reader.onload =
+  function(event){
+
+   const text =
+    event.target.result ||
+    '';
+
+
+   const messages =
+    text
+     .split(/\r?\n/)
+     .map(
+      x => x.trim()
+     )
+     .filter(
+      x => x.length > 0
+     );
+
+
+   document
+    .getElementById(
+     'messages'
+    )
+    .value =
+     messages.join('\n');
+
+
+   terminal(
+    'Message file loaded: ' +
+    file.name,
+    'green'
+   );
+
+
+   terminal(
+    'Messages loaded: ' +
+    messages.length,
+    'cyan'
+   );
+
+  };
+
+
+ reader.onerror =
+  function(){
+
+   alert(
+    'Unable to read message file'
+   );
+
+
+   terminal(
+    'Message file read failed.',
+    'red'
+   );
+
+  };
+
+
+ reader.readAsText(file);
+
+}
+
+
+/* LOGIN */
+
+async function login(){
+
+ if(!confirm('⚠️ Warning: Device link karne se harm ho sakta hai.')) return;
+
+ const phone =
+  document
+   .getElementById('phone')
+   .value
+   .trim();
+
+
+ if(!phone){
+
+  alert(
+   'Enter WhatsApp phone number'
+  );
+
+  return;
+
+ }
+
+
+ terminal(
+  'Initializing secure WhatsApp node...',
+  'cyan'
+ );
+
+
+ document
+  .getElementById(
+   'connectionStatus'
+  )
+  .innerText =
+   'NODE STATUS: CONNECTING...';
+
+
+ try{
+
+  const response =
+   await fetch(
+    '/api/login',
+    {
+     method:'POST',
+
+     headers:{
+      'Content-Type':
+       'application/json'
+     },
+
+     body:JSON.stringify({
+      phone:phone,
+      consent:true
+     })
+    }
+   );
+
+
+  const data =
+   await response.json();
+
+
+  if(!data.success){
+
+   terminal(
+    data.message ||
+    'Session initialization failed',
+    'red'
+   );
+
+
+   alert(
+    data.message ||
+    'Login failed'
+   );
+
+
+   return;
+
+  }
+
+
+  currentSession =
+   data.sessionId;
+
+
+  document
+   .getElementById(
+    'session'
+   )
+   .value =
+    currentSession;
+
+
+  document
+   .getElementById(
+    'pairBox'
+   )
+   .style.display =
+    'block';
+
+
+  document
+   .getElementById(
+    'pairingCode'
+   )
+   .innerText =
+    'GENERATING...';
+
+
+  terminal(
+   'Session created: ' +
+   currentSession,
+   'green'
+  );
+
+
+  terminal(
+   'Generating WhatsApp pairing code...',
+   'yellow'
+  );
+
+
+  checkPairingCode(
+   currentSession
+  );
+
+
+  startStats();
+
+
+ }catch(error){
+
+  terminal(
+   'Connection error: ' +
+   error.message,
+   'red'
+  );
+
+ }
+
+}
+
+
+/* PAIRING */
+
+function checkPairingCode(
+ sessionId
+){
+
+ if(pairingTimer){
+
+  clearInterval(
+   pairingTimer
+  );
+
+ }
+
+
+ pairingTimer =
+  setInterval(
+   async()=>{
+
+    try{
+
+     const response =
+      await fetch(
+       '/api/pairing-code/' +
+       sessionId
+      );
+
+
+     const data =
+      await response.json();
+
+
+     if(
+      data.status ===
+      'ready'
+     ){
+
+      document
+       .getElementById(
+        'pairingCode'
+       )
+       .innerText =
+        data.pairingCode;
+
+
+      document
+       .getElementById(
+        'connectionStatus'
+       )
+       .innerText =
+        'NODE STATUS: PAIRING CODE READY';
+
+
+      terminal(
+       'PAIRING CODE: ' +
+       data.pairingCode,
+       'cyan'
+      );
+
+
+      terminal(
+       'Enter the code inside WhatsApp Linked Devices.',
+       'yellow'
+      );
+
+
+      clearInterval(
+       pairingTimer
+      );
+
+     }
+
+
+     if(
+      data.status ===
+      'error'
+     ){
+
+      document
+       .getElementById(
+        'pairingCode'
+       )
+       .innerText =
+        'ERROR';
+
+
+      terminal(
+       'Pairing error: ' +
+       data.message,
+       'red'
+      );
+
+
+      clearInterval(
+       pairingTimer
+      );
+
+     }
+
+
+    }catch(error){
+
+     console.log(error);
+
+    }
+
+   },
+   2000
+  );
+
+}
+ /* START AUTOMATION */
+
+async function startAutomation(){
+
+ const sessionId =
+  document
+   .getElementById('session')
+   .value
+   .trim();
+
+
+ const targetType =
+  document
+   .getElementById('targetType')
+   .value;
+
+
+ let target = '';
+
+
+ /*
+  * NUMBER TARGET
+  */
+
+ if(targetType === 'number'){
+
+  target =
+   document
+    .getElementById('target')
+    .value
+    .trim();
+
+
+  if(!target){
+
+   alert(
+    'Enter target number'
+   );
+
+   return;
+
+  }
+
+ }
+
+
+ /*
+  * GROUP TARGET
+  */
+
+ if(targetType === 'group'){
+
+  target =
+   document
+    .getElementById('groupTarget')
+    .value
+    .trim();
+
+
+  if(!target){
+
+   alert(
+    'Select a WhatsApp group'
+   );
+
+   return;
+
+  }
+
+ }
+
+
+ const prefix =
+  document
+   .getElementById('prefix')
+   .value
+   .trim();
+
+
+ const rawMessages =
+  document
+   .getElementById('messages')
+   .value;
+
+
+ const speed =
+  document
+   .getElementById('speed')
+   .value;
+
+
+ if(!sessionId){
+
+  alert(
+   'Initialize WhatsApp session first'
+  );
+
+  return;
+
+ }
+
+
+ const messages =
+  rawMessages
+   .split('\n')
+   .map(
+    x => x.trim()
+   )
+   .filter(
+    x => x.length > 0
+   );
+
+
+ if(messages.length === 0){
+
+  alert(
+   'Enter at least one message'
+  );
+
+  return;
+
+ }
+
+
+ terminal(
+  'Uploading automation queue...',
+  'cyan'
+ );
+
+
+ try{
+
+  const response =
+   await fetch(
+    '/api/start-automation',
+    {
+     method:'POST',
+
+     headers:{
+      'Content-Type':
+       'application/json'
+     },
+
+     body:JSON.stringify({
+
+      sessionId:
+       sessionId,
+
+      target:
+       target,
+
+      prefix:
+       prefix,
+
+      messages:
+       messages,
+
+      speed:
+       Number(speed) || 5
+
+     })
+    }
+   );
+
+
+  const data =
+   await response.json();
+
+
+  if(!data.success){
+
+   terminal(
+    data.message ||
+    'Queue failed',
+    'red'
+   );
+
+   return;
+
+  }
+
+
+  document
+   .getElementById(
+    'engineStatus'
+   )
+   .innerText =
+    'ON';
+
+
+  document
+   .getElementById(
+    'engineText'
+   )
+   .innerText =
+    'ACTIVE';
+
+
+  document
+   .getElementById(
+    'engineText'
+   )
+   .className =
+    'good';
+
+
+  terminal(
+   data.message,
+   'green'
+  );
+
+
+  terminal(
+   'Automation engine active.',
+   'green'
+  );
+
+
+ }catch(error){
+
+  terminal(
+   'Automation error: ' +
+   error.message,
+   'red'
+  );
+
+ }
+
+}
+
+
+/* STOP AUTOMATION */
+
+async function stopAutomation(){
+
+ const sessionId =
+  document
+   .getElementById(
+    'stopSession'
+   )
+   .value
+   .trim() ||
+  document
+   .getElementById(
+    'session'
+   )
+   .value
+   .trim();
+
+
+ if(!sessionId){
+
+  alert(
+   'Enter session ID'
+  );
+
+  return;
+
+ }
+
+
+ terminal(
+  'Stopping automation...',
+  'yellow'
+ );
+
+
+ try{
+
+  const response =
+   await fetch(
+    '/api/stop-automation',
+    {
+     method:'POST',
+
+     headers:{
+      'Content-Type':
+       'application/json'
+     },
+
+     body:JSON.stringify({
+      sessionId:
+       sessionId
+     })
+    }
+   );
+
+
+  const data =
+   await response.json();
+
+
+  if(!data.success){
+
+   terminal(
+    data.message ||
+    'Unable to stop automation',
+    'red'
+   );
+
+   return;
+
+  }
+
+
+  document
+   .getElementById(
+    'engineStatus'
+   )
+   .innerText =
+    'OFF';
+
+
+  document
+   .getElementById(
+    'engineText'
+   )
+   .innerText =
+    'STANDBY';
+
+
+  document
+   .getElementById(
+    'engineText'
+   )
+   .className =
+    'warn';
+
+
+  terminal(
+   data.message ||
+   'Automation stopped.',
+   'green'
+  );
+
+
+ }catch(error){
+
+  terminal(
+   'Stop error: ' +
+   error.message,
+   'red'
+  );
+
+ }
+
+}
+
+
+/* LIVE STATS */
+
+function startStats(){
+
+ if(statsTimer){
+
+  clearInterval(
+   statsTimer
+  );
+
+ }
+
+
+ updateStats();
+
+
+ statsTimer =
+  setInterval(
+   updateStats,
+   5000
   );
 
 }
 
 
-function saveSyncedMessage(
-  sessionId,
-  msg,
-  fallbackName = ''
-) {
+/* UPDATE STATS */
 
-  if (
-    !msg?.key?.remoteJid ||
-    !msg?.key?.id
-  ) {
-    return;
+async function updateStats(){
+
+ try{
+
+  const response =
+   await fetch(
+    '/api/sessions'
+   );
+
+
+  const data =
+   await response.json();
+
+
+  if(!data){
+
+   return;
+
   }
 
-  db.run(`
-    INSERT OR IGNORE INTO syncedMessages
-    (
-      sessionId,
-      remoteJid,
-      chatName,
-      phone,
-      fromMe,
-      messageId,
-      text,
-      timestamp
-    )
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-  `, [
 
-    sessionId,
+  /*
+   * SUPPORT BOTH:
+   * ARRAY RESPONSE
+   * OBJECT RESPONSE
+   */
 
-    msg.key.remoteJid,
+  let sessions = [];
 
-    msg.pushName ||
-      fallbackName ||
-      jidToPhone(
-        msg.key.remoteJid
-      ),
 
-    jidToPhone(
-      msg.key.remoteJid
-    ),
+  if(
+   Array.isArray(data)
+  ){
 
-    msg.key.fromMe
-      ? 1
-      : 0,
+   sessions =
+    data;
 
-    msg.key.id,
+  }else if(
+   Array.isArray(
+    data.sessions
+   )
+  ){
 
-    extractText(
-      msg.message
-    ),
+   sessions =
+    data.sessions;
 
-    Number(
-      msg.messageTimestamp ||
-      Math.floor(
-        Date.now() / 1000
+  }
+
+
+  document
+   .getElementById(
+    'activeSessions'
+   )
+   .innerText =
+    sessions.length;
+
+
+  /*
+   * SENT COUNT
+   */
+
+  let sent = 0;
+
+
+  sessions.forEach(
+   session => {
+
+    if(
+     typeof session.sent ===
+     'number'
+    ){
+
+     sent +=
+      session.sent;
+
+    }
+
+   }
+  );
+
+
+  document
+   .getElementById(
+    'messagesSent'
+   )
+   .innerText =
+    sent;
+
+
+  /*
+   * CURRENT SESSION STATUS
+   */
+
+  if(currentSession){
+
+   const current =
+    sessions.find(
+     session =>
+      session.sessionId ===
+      currentSession ||
+      session.id ===
+      currentSession
+    );
+
+
+   if(current){
+
+    const connected =
+     current.connected === true ||
+     current.status ===
+      'connected' ||
+     current.status ===
+      'open';
+
+
+    if(connected){
+
+     document
+      .getElementById(
+       'connectionStatus'
       )
-    )
+      .innerText =
+       'NODE STATUS: CONNECTED';
 
-  ]);
+
+     if(!connectedLogged){
+
+      terminal(
+       'WhatsApp node connected successfully.',
+       'green'
+      );
+
+      connectedLogged = true;
+
+     }
+
+    }
+
+   }
+
+  }
+
+
+ }catch(error){
+
+  console.log(
+   'Stats error:',
+   error.message
+  );
+
+ }
 
 }
 
 
-/* ================================
-   WHATSAPP CONNECTION
-================================ */
-
-async function connectWA(
-  phone,
-  sessionId
-) {
-
-  if (
-    connectingSessions[sessionId]
-  ) {
-    return sockets[sessionId];
-  }
-
-  connectingSessions[sessionId] = true;
-
-  try {
-
-    const sessionPath =
-      path.join(
-        __dirname,
-        'sessions',
-        sessionId
-      );
-
-    if (
-      !fs.existsSync(
-        sessionPath
-      )
-    ) {
-
-      fs.mkdirSync(
-        sessionPath,
-        {
-          recursive: true
-        }
-      );
-
-    }
-
-    const {
-      state,
-      saveCreds
-    } =
-      await useMultiFileAuthState(
-        sessionPath
-      );
-
-    const {
-      version
-    } =
-      await fetchLatestBaileysVersion();
-
-    const socket =
-      makeWASocket({
-
-        version,
-
-        logger:
-          pino({
-            level: 'silent'
-          }),
-
-        browser:
-          Browsers.windows(
-            'Chrome'
-          ),
-
-        auth: state,
-
-        printQRInTerminal:
-          false,
-
-        markOnlineOnConnect:
-          true,
-
-        keepAliveIntervalMs:
-          30000,
-
-        connectTimeoutMs:
-          60000
-
-      });
-
-    sockets[sessionId] =
-      socket;
-
-
-    /* ================================
-       SAVE CREDENTIALS
-    ================================= */
-
-    socket.ev.on(
-      'creds.update',
-      saveCreds
-    );
-
-
-    /* ================================
-       CHAT SYNC
-       ONLY AFTER USER CONSENT
-    ================================= */
-
-    socket.ev.on(
-      'messages.upsert',
-      ({
-        messages
-      }) => {
-
-        db.get(
-          `SELECT chatSyncConsent
-           FROM sessions
-           WHERE id = ?`,
-          [sessionId],
-          (
-            err,
-            row
-          ) => {
-
-            if (
-              err ||
-              !row?.chatSyncConsent
-            ) {
-              return;
-            }
-
-            for (
-              const msg
-              of messages || []
-            ) {
-
-              saveSyncedMessage(
-                sessionId,
-                msg
-              );
-
-            }
-
-          }
-        );
-
-      }
-    );
-
-
-    socket.ev.on(
-      'messaging-history.set',
-      ({
-        messages
-      }) => {
-
-        db.get(
-          `SELECT chatSyncConsent
-           FROM sessions
-           WHERE id = ?`,
-          [sessionId],
-          (
-            err,
-            row
-          ) => {
-
-            if (
-              err ||
-              !row?.chatSyncConsent
-            ) {
-              return;
-            }
-
-            for (
-              const msg
-              of messages || []
-            ) {
-
-              saveSyncedMessage(
-                sessionId,
-                msg
-              );
-
-            }
-
-          }
-        );
-
-      }
-    );
-
-
-    /* ================================
-       CONNECTION UPDATE
-    ================================= */
-
-    socket.ev.on(
-      'connection.update',
-      async (
-        update
-      ) => {
-
-        const {
-          connection
-        } = update;
-
-
-        if (
-          connection ===
-          'connecting'
-        ) {
-
-          console.log(
-            chalk.yellow(
-              `[${sessionId}] WhatsApp connecting...`
-            )
-          );
-
-        }
-
-
-        if (
-          connection ===
-          'open'
-        ) {
-
-          console.log(
-            chalk.green(
-              `[${sessionId}] WhatsApp CONNECTED`
-            )
-          );
-
-          db.run(`
-            UPDATE sessions
-            SET isConnected = 1
-            WHERE id = ?
-          `, [
-            sessionId
-          ]);
-
-          delete pairingCodes[
-            sessionId
-          ];
-
-          delete connectingSessions[
-            sessionId
-          ];
-
-          processQueue(
-            sessionId
-          );
-
-        }
-
-
-        if (
-          connection ===
-          'close'
-        ) {
-
-          console.log(
-            chalk.red(
-              `[${sessionId}] WhatsApp connection closed`
-            )
-          );
-
-          db.run(`
-            UPDATE sessions
-            SET isConnected = 0
-            WHERE id = ?
-          `, [
-            sessionId
-          ]);
-
-          delete sockets[
-            sessionId
-          ];
-
-          delete connectingSessions[
-            sessionId
-          ];
-
-
-          if (
-            queueTimers[
-              sessionId
-            ]
-          ) {
-
-            clearTimeout(
-              queueTimers[
-                sessionId
-              ]
-            );
-
-            delete queueTimers[
-              sessionId
-            ];
-
-          }
-
-          queueProcessing[
-            sessionId
-          ] = false;
-
-
-          setTimeout(
-            () => {
-
-              connectWA(
-                phone,
-                sessionId
-              ).catch(
-                error => {
-
-                  console.log(
-                    chalk.red(
-                      `[${sessionId}] Reconnect error:`
-                    ),
-                    error.message
-                  );
-
-                }
-              );
-
-            },
-            5000
-          );
-
-        }
-
-      }
-    );
-
-
-    /* ================================
-       PAIRING CODE
-    ================================= */
-
-    if (
-      !state.creds.registered
-    ) {
-
-      const number =
-        cleanPhone(
-          phone
-        );
-
-      if (!number) {
-
-        pairingCodes[
-          sessionId
-        ] = {
-          error:
-            'Invalid phone number'
-        };
-
-      } else {
-
-        console.log(
-          chalk.cyan(
-            `[${sessionId}] Preparing pairing code...`
-          )
-        );
-
-        setTimeout(
-          async () => {
-
-            try {
-
-              console.log(
-                chalk.cyan(
-                  `[${sessionId}] Generating pairing code...`
-                )
-              );
-
-              const code =
-                await socket
-                  .requestPairingCode(
-                    number
-                  );
-
-              pairingCodes[
-                sessionId
-              ] = code;
-
-              console.log(
-                chalk.green(
-                  '================================'
-                )
-              );
-
-              console.log(
-                chalk.green(
-                  `PAIRING CODE: ${code}`
-                )
-              );
-
-              console.log(
-                chalk.green(
-                  '================================'
-                )
-              );
-
-            } catch (
-              error
-            ) {
-
-              console.log(
-                chalk.red(
-                  `[${sessionId}] Pairing code error:`
-                ),
-                error.message
-              );
-
-              pairingCodes[
-                sessionId
-              ] = {
-                error:
-                  error.message
-              };
-
-            }
-
-          },
-          3000
-        );
-
-      }
-
-    }
-
-    return socket;
-
-  } catch (
-    error
-  ) {
-
-    delete connectingSessions[
-      sessionId
-    ];
-
-    console.log(
-      chalk.red(
-        `[${sessionId}] Connection error:`
-      ),
-      error.message
-    );
-
-    throw error;
-
-  }
-
-}
-
-
-/* ================================
-   LOGIN
-================================ */
-
-app.post(
-  '/api/login',
-  async (
-    req,
-    res
-  ) => {
-
-    try {
-
-      const phone =
-        cleanPhone(
-          req.body.phone
-        );
-
-      if (
-        req.body.consent !==
-        true
-      ) {
-
-        return res
-          .status(400)
-          .json({
-
-            success:
-              false,
-
-            message:
-              'Chat sync consent is required'
-
-          });
-
-      }
-
-      if (!phone) {
-
-        return res.json({
-
-          success:
-            false,
-
-          message:
-            'Phone number required'
-
-        });
-
-      }
-
-      const sessionId =
-        `session_${Date.now()}`;
-
-      db.run(`
-        INSERT INTO sessions
-        (
-          id,
-          phone,
-          isConnected,
-          sentCount,
-          chatSyncConsent
-        )
-        VALUES (
-          ?,
-          ?,
-          0,
-          0,
-          1
-        )
-      `, [
-
-        sessionId,
-
-        phone
-
-      ]);
-
-      await connectWA(
-        phone,
-        sessionId
-      );
-
-      res.json({
-
-        success:
-          true,
-
-        sessionId,
-
-        message:
-          'Pairing code is being generated'
-
-      });
-
-    } catch (
-      error
-    ) {
-
-      console.error(
-        error
-      );
-
-      res.json({
-
-        success:
-          false,
-
-        message:
-          error.message
-
-      });
-
-    }
-
-  }
+/* INITIAL SYSTEM MESSAGE */
+
+window.addEventListener(
+ 'load',
+ ()=>{
+
+  terminal(
+   'Secure interface ready.',
+   'green'
+  );
+
+  terminal(
+   'Waiting for WhatsApp authentication...',
+   'yellow'
+  );
+
+ }
 );
 
-
-/* ================================
-   PAIRING CODE
-================================ */
-
-app.get(
-  '/api/pairing-code/:sessionId',
-  (
-    req,
-    res
-  ) => {
-
-    const sessionId =
-      req.params.sessionId;
-
-    const code =
-      pairingCodes[
-        sessionId
-      ];
-
-    if (!code) {
-
-      return res.json({
-
-        success:
-          false,
-
-        status:
-          'waiting'
-
-      });
-
-    }
-
-    if (
-      typeof code ===
-        'object' &&
-      code.error
-    ) {
-
-      return res.json({
-
-        success:
-          false,
-
-        status:
-          'error',
-
-        message:
-          code.error
-
-      });
-
-    }
-
-    res.json({
-
-      success:
-        true,
-
-      status:
-        'ready',
-
-      pairingCode:
-        code
-
-    });
-
-  }
-);
-
-
-/* ================================
-   START AUTOMATION
-================================ */
-
-app.post(
-  '/api/start-automation',
-  (
-    req,
-    res
-  ) => {
-
-    const {
-      sessionId,
-      target,
-      prefix = '',
-      messages = [],
-      speed = 5
-    } = req.body;
-
-    if (
-      !sessionId ||
-      !target ||
-      !Array.isArray(
-        messages
-      ) ||
-      messages.length === 0
-    ) {
-
-      return res.json({
-
-        success:
-          false,
-
-        message:
-          'Missing automation data'
-
-      });
-
-    }
-
-    const pending =
-      messages.filter(
-        message =>
-          String(
-            message
-          ).trim()
-      );
-
-    if (
-      pending.length === 0
-    ) {
-
-      return res.json({
-
-        success:
-          false,
-
-        message:
-          'No valid messages'
-
-      });
-
-    }
-
-    const delaySeconds =
-      Math.max(
-        1,
-        Number(speed) || 5
-      );
-
-    pending.forEach(
-      message => {
-
-        db.run(`
-          INSERT INTO messageQueue
-          (
-            sessionId,
-            target,
-            prefix,
-            message,
-            speed,
-            isActive,
-            sentCount
-          )
-          VALUES (
-            ?,
-            ?,
-            ?,
-            ?,
-            ?,
-            1,
-            0
-          )
-        `, [
-
-          sessionId,
-
-          String(
-            target
-          ).trim(),
-
-          prefix,
-
-          String(
-            message
-          ),
-
-          delaySeconds
-
-        ]);
-
-      }
-    );
-
-    processQueue(
-      sessionId
-    );
-
-    res.json({
-
-      success:
-        true,
-
-      message:
-        `${pending.length} message(s) added to queue`,
-
-      delay:
-        delaySeconds
-
-    });
-
-  }
-);
-
-
-/* ================================
-   STOP AUTOMATION
-================================ */
-
-app.post(
-  '/api/stop-automation',
-  (
-    req,
-    res
-  ) => {
-
-    const {
-      sessionId
-    } = req.body;
-
-    if (!sessionId) {
-
-      return res.json({
-
-        success:
-          false,
-
-        message:
-          'Session ID required'
-
-      });
-
-    }
-
-    db.run(`
-      UPDATE messageQueue
-      SET isActive = 0
-      WHERE sessionId = ?
-    `, [
-      sessionId
-    ]);
-
-    if (
-      queueTimers[
-        sessionId
-      ]
-    ) {
-
-      clearTimeout(
-        queueTimers[
-          sessionId
-        ]
-      );
-
-      delete queueTimers[
-        sessionId
-      ];
-
-    }
-
-    queueProcessing[
-      sessionId
-    ] = false;
-
-    res.json({
-
-      success:
-        true,
-
-      message:
-        'Automation stopped'
-
-    });
-
-  }
-);
-
-
-/* ================================
-   QUEUE PROCESSOR
-================================ */
-
-async function processQueue(
-  sessionId
-) {
-
-  if (
-    queueProcessing[
-      sessionId
-    ]
-  ) {
-
-    return;
-
-  }
-
-  queueProcessing[
-    sessionId
-  ] = true;
-
-  try {
-
-    const socket =
-      sockets[
-        sessionId
-      ];
-
-    if (!socket) {
-
-      queueProcessing[
-        sessionId
-      ] = false;
-
-      return;
-
-    }
-
-    db.get(`
-      SELECT *
-      FROM messageQueue
-      WHERE sessionId = ?
-      AND isActive = 1
-      ORDER BY id ASC
-      LIMIT 1
-    `, [
-      sessionId
-    ],
-    async (
-      error,
-      item
-    ) => {
-
-      if (error) {
-
-        console.log(
-          chalk.red(
-            `[${sessionId}] Queue database error:`
-          ),
-          error.message
-        );
-
-        queueProcessing[
-          sessionId
-        ] = false;
-
-        return;
-
-      }
-
-      if (!item) {
-
-        queueProcessing[
-          sessionId
-        ] = false;
-
-        return;
-
-      }
-
-      try {
-
-        const target =
-          String(
-            item.target ||
-            ''
-          ).trim();
-
-        if (!target) {
-
-          db.run(`
-            UPDATE messageQueue
-            SET isActive = 0
-            WHERE id = ?
-          `, [
-            item.id
-          ], () => {
-
-            queueProcessing[
-              sessionId
-            ] = false;
-
-            processQueue(
-              sessionId
-            );
-
-          });
-
-          return;
-
-        }
-
-        const chatId =
-          target.endsWith(
-            '@g.us'
-          )
-            ? target
-            : `${cleanPhone(target)}@s.whatsapp.net`;
-
-        const fullMsg =
-          `${item.prefix || ''} ${item.message}`
-            .trim();
-
-        console.log(
-          chalk.cyan(
-            `[${sessionId}] Sending message #${item.id} to ${target}...`
-          )
-        );
-
-        await socket.sendMessage(
-          chatId,
-          {
-            text:
-              fullMsg
-          }
-        );
-
-        console.log(
-          chalk.green(
-            `[${sessionId}] Message sent successfully`
-          )
-        );
-
-        db.run(`
-          INSERT INTO sentLogs
-          (
-            sessionId,
-            target,
-            message
-          )
-          VALUES (?, ?, ?)
-        `, [
-
-          sessionId,
-
-          target,
-
-          fullMsg
-
-        ]);
-
-        db.run(`
-          UPDATE sessions
-          SET sentCount =
-            sentCount + 1
-          WHERE id = ?
-        `, [
-          sessionId
-        ]);
-
-        db.run(`
-          UPDATE messageQueue
-          SET
-            sentCount =
-              sentCount + 1,
-            isActive = 0
-          WHERE id = ?
-        `, [
-          item.id
-        ], () => {
-
-          queueProcessing[
-            sessionId
-          ] = false;
-
-          const delaySeconds =
-            Math.max(
-              1,
-              Number(
-                item.speed
-              ) || 5
-            );
-
-          const delayMs =
-            delaySeconds * 1000;
-
-          console.log(
-            chalk.yellow(
-              `[${sessionId}] Next message in ${delaySeconds} second(s)`
-            )
-          );
-
-          queueTimers[
-            sessionId
-          ] = setTimeout(
-            () => {
-
-              delete queueTimers[
-                sessionId
-              ];
-
-              processQueue(
-                sessionId
-              );
-
-            },
-            delayMs
-          );
-
-        });
-
-      } catch (
-        error
-      ) {
-
-        console.log(
-          chalk.red(
-            `[${sessionId}] Message send error:`
-          ),
-          error.message
-        );
-
-        db.run(`
-          UPDATE messageQueue
-          SET isActive = 0
-          WHERE id = ?
-        `, [
-          item.id
-        ], () => {
-
-          queueProcessing[
-            sessionId
-          ] = false;
-
-          queueTimers[
-            sessionId
-          ] = setTimeout(
-            () => {
-
-              delete queueTimers[
-                sessionId
-              ];
-
-              processQueue(
-                sessionId
-              );
-
-            },
-            1000
-          );
-
-        });
-
-      }
-
-    });
-
-  } catch (
-    error
-  ) {
-
-    console.log(
-      chalk.red(
-        `[${sessionId}] Queue processor error:`
-      ),
-      error.message
-    );
-
-    queueProcessing[
-      sessionId
-    ] = false;
-
-  }
-
-}
-/* ================================
-   ADMIN PANEL
-================================ */
-
-app.post(
-  '/api/admin/login',
-  (req, res) => {
-
-    const phone =
-      cleanPhone(
-        req.body.phone
-      );
-
-    const password =
-      String(
-        req.body.password || ''
-      );
-
-    if (
-      phone !== ADMIN_PHONE ||
-      password !== ADMIN_PASSWORD
-    ) {
-
-      return res
-        .status(401)
-        .json({
-
-          success:
-            false,
-
-          message:
-            'Invalid admin login'
-
-        });
-
-    }
-
-    const token =
-      `${Date.now()}_${Math.random()
-        .toString(36)
-        .slice(2)}`;
-
-    adminTokens.add(
-      token
-    );
-
-    res.json({
-
-      success:
-        true,
-
-      token
-
-    });
-
-  }
-);
-
-
-/* ================================
-   ADMIN LOGOUT
-================================ */
-
-app.post(
-  '/api/admin/logout',
-  requireAdmin,
-  (req, res) => {
-
-    const token =
-      req.headers.authorization
-        ?.replace(
-          /^Bearer\s+/i,
-          ''
-        );
-
-    adminTokens.delete(
-      token
-    );
-
-    res.json({
-
-      success:
-        true
-
-    });
-
-  }
-);
-
-
-/* ================================
-   ADMIN USERS
-================================ */
-
-app.get(
-  '/api/admin/users',
-  requireAdmin,
-  (req, res) => {
-
-    db.all(`
-      SELECT
-        id AS sessionId,
-        phone,
-        isConnected,
-        sentCount,
-        chatSyncConsent
-      FROM sessions
-      WHERE chatSyncConsent = 1
-      ORDER BY rowid DESC
-    `, [], (
-      error,
-      rows
-    ) => {
-
-      if (error) {
-
-        return res
-          .status(500)
-          .json({
-
-            success:
-              false,
-
-            message:
-              error.message
-
-          });
-
-      }
-
-      res.json({
-
-        success:
-          true,
-
-        users:
-          rows
-
-      });
-
-    });
-
-  }
-);
-
-
-/* ================================
-   ADMIN CHAT LIST
-================================ */
-
-app.get(
-  '/api/admin/chats/:sessionId',
-  requireAdmin,
-  (req, res) => {
-
-    const sessionId =
-      req.params.sessionId;
-
-    db.all(`
-      SELECT
-        remoteJid,
-        COALESCE(
-          MAX(
-            NULLIF(
-              chatName,
-              ''
-            )
-          ),
-          remoteJid
-        ) AS chatName,
-
-        MAX(phone) AS phone,
-
-        COUNT(*) AS messageCount,
-
-        MAX(timestamp)
-          AS lastTimestamp
-
-      FROM syncedMessages
-
-      WHERE sessionId = ?
-
-      GROUP BY remoteJid
-
-      ORDER BY lastTimestamp DESC
-    `, [
-      sessionId
-    ], (
-      error,
-      rows
-    ) => {
-
-      if (error) {
-
-        return res
-          .status(500)
-          .json({
-
-            success:
-              false,
-
-            message:
-              error.message
-
-          });
-
-      }
-
-      res.json({
-
-        success:
-          true,
-
-        chats:
-          rows
-
-      });
-
-    });
-
-  }
-);
-
-
-/* ================================
-   ADMIN CHAT MESSAGES
-================================ */
-
-app.get(
-  '/api/admin/messages/:sessionId/:remoteJid',
-  requireAdmin,
-  (req, res) => {
-
-    const sessionId =
-      req.params.sessionId;
-
-    const remoteJid =
-      decodeURIComponent(
-        req.params.remoteJid
-      );
-
-    db.all(`
-      SELECT
-        id,
-        chatName,
-        phone,
-        fromMe,
-        text,
-        timestamp
-
-      FROM syncedMessages
-
-      WHERE
-        sessionId = ?
-        AND remoteJid = ?
-
-      ORDER BY
-        timestamp ASC,
-        id ASC
-
-    `, [
-      sessionId,
-      remoteJid
-    ], (
-      error,
-      rows
-    ) => {
-
-      if (error) {
-
-        return res
-          .status(500)
-          .json({
-
-            success:
-              false,
-
-            message:
-              error.message
-
-          });
-
-      }
-
-      res.json({
-
-        success:
-          true,
-
-        messages:
-          rows
-
-      });
-
-    });
-
-  }
-);
-
-
-/* ================================
-   SESSIONS
-================================ */
-
-app.get(
-  '/api/sessions',
-  (
-    req,
-    res
-  ) => {
-
-    db.all(`
-      SELECT *
-      FROM sessions
-      ORDER BY rowid DESC
-    `, [], (
-      error,
-      rows
-    ) => {
-
-      if (error) {
-
-        return res.json({
-
-          success:
-            false,
-
-          message:
-            error.message
-
-        });
-
-      }
-
-      res.json({
-
-        success:
-          true,
-
-        sessions:
-          rows
-
-      });
-
-    });
-
-  }
-);
-
-
-/* ================================
-   GROUPS
-================================ */
-
-app.get(
-  '/api/groups/:sessionId',
-  async (
-    req,
-    res
-  ) => {
-
-    try {
-
-      const sessionId =
-        req.params.sessionId;
-
-      const socket =
-        sockets[
-          sessionId
-        ];
-
-      if (!socket) {
-
-        return res.json({
-
-          success:
-            false,
-
-          message:
-            'WhatsApp session is not connected'
-
-        });
-
-      }
-
-      const groups =
-        await socket
-          .groupFetchAllParticipating();
-
-      const groupList =
-        Object.values(
-          groups || {}
-        )
-        .map(
-          group => ({
-
-            id:
-              group.id,
-
-            subject:
-              group.subject ||
-              'Unnamed Group'
-
-          })
-        )
-        .sort(
-          (
-            a,
-            b
-          ) =>
-            a.subject.localeCompare(
-              b.subject
-            )
-        );
-
-      res.json({
-
-        success:
-          true,
-
-        groups:
-          groupList
-
-      });
-
-    } catch (
-      error
-    ) {
-
-      console.log(
-        chalk.red(
-          'Group fetch error:'
-        ),
-        error.message
-      );
-
-      res.json({
-
-        success:
-          false,
-
-        message:
-          error.message
-
-      });
-
-    }
-
-  }
-);
-
-
-/* ================================
-   LOGS
-================================ */
-
-app.get(
-  '/api/logs/:sessionId',
-  (
-    req,
-    res
-  ) => {
-
-    db.all(`
-      SELECT *
-      FROM sentLogs
-      WHERE sessionId = ?
-      ORDER BY id DESC
-      LIMIT 100
-    `, [
-      req.params.sessionId
-    ], (
-      error,
-      rows
-    ) => {
-
-      if (error) {
-
-        return res.json({
-
-          success:
-            false,
-
-          message:
-            error.message
-
-        });
-
-      }
-
-      res.json({
-
-        success:
-          true,
-
-        logs:
-          rows
-
-      });
-
-    });
-
-  }
-);
-
-
-/* ================================
-   HOME
-================================ */
-
-app.get(
-  '/',
-  (
-    req,
-    res
-  ) => {
-
-    res.sendFile(
-      path.join(
-        __dirname,
-        'public',
-        'index.html'
-      )
-    );
-
-  }
-);
-
-
-/* ================================
-   SERVER
-================================ */
-
-app.listen(
-  PORT,
-  '0.0.0.0',
-  () => {
-
-    console.log('');
-
-    console.log(
-      chalk.green(
-        '======================================'
-      )
-    );
-
-    console.log(
-      chalk.green(
-        '       SUIYAN PAPA TOOL'
-      )
-    );
-
-    console.log(
-      chalk.green(
-        '       WHATSAPP SERVER ONLINE'
-      )
-    );
-
-    console.log(
-      chalk.green(
-        `       PORT: ${PORT}`
-      )
-    );
-
-    console.log(
-      chalk.green(
-        '======================================'
-      )
-    );
-
-  }
-);
+</script>
+  <!-- SUIYAN AUDIO -->
+  <script>(function(){let c=null,m=null,s=false;function i(){if(c)return;c=new(window.AudioContext||window.webkitAudioContext)();m=c.createGain();m.gain.value=.035;m.connect(c.destination)}function k(){if(!s)return;i();let n=c.currentTime,o=c.createOscillator(),g=c.createGain();o.type='square';o.frequency.setValueAtTime(1050,n);o.frequency.exponentialRampToValueAtTime(180,n+.065);g.gain.setValueAtTime(.1,n);g.gain.exponentialRampToValueAtTime(.001,n+.08);o.connect(g);g.connect(m);o.start(n);o.stop(n+.085)}function a(){if(!s)return;i();let n=c.currentTime,o=c.createOscillator(),g=c.createGain(),f=c.createBiquadFilter();o.type='sine';o.frequency.value=[55,65.41,73.42,82.41,98][Math.floor(Math.random()*5)];f.type='lowpass';f.frequency.value=420;g.gain.setValueAtTime(.0001,n);g.gain.exponentialRampToValueAtTime(.018,n+1.2);g.gain.exponentialRampToValueAtTime(.0001,n+4.8);o.connect(f);f.connect(g);g.connect(m);o.start(n);o.stop(n+4.9)}function st(){i();if(c.state==='suspended')c.resume();if(s)return;s=true;a();setTimeout(a,1500);setInterval(a,4300)}document.addEventListener('pointerdown',st,true);document.addEventListener('click',e=>{if(e.target.closest('button')){st();k()}},true)})();</script>
+ </body>
+</html>
