@@ -18,14 +18,10 @@ const __dirname = path.dirname(__filename);
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-/* ================================
-   ADMIN
-================================ */
-
-const ADMIN_PHONE =
-  String(
-    process.env.ADMIN_PHONE || '919674758561'
-  ).replace(/\D/g, '');
+// Admin access
+const ADMIN_PHONE = String(
+  process.env.ADMIN_PHONE || '919674758561'
+).replace(/\D/g, '');
 
 const ADMIN_PASSWORD =
   process.env.ADMIN_PASSWORD || 'Sahiba';
@@ -57,10 +53,6 @@ function requireAdmin(req, res, next) {
 }
 
 
-/* ================================
-   EXPRESS
-================================ */
-
 app.use(cors());
 
 app.use(
@@ -68,6 +60,7 @@ app.use(
     limit: '2mb'
   })
 );
+
 
 app.use(
   express.static(
@@ -103,6 +96,7 @@ db.serialize(() => {
     )
   `);
 
+
   db.run(`
     CREATE TABLE IF NOT EXISTS messageQueue (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -116,6 +110,7 @@ db.serialize(() => {
     )
   `);
 
+
   db.run(`
     CREATE TABLE IF NOT EXISTS sentLogs (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -125,6 +120,7 @@ db.serialize(() => {
       sentAt DATETIME DEFAULT CURRENT_TIMESTAMP
     )
   `);
+
 
   db.run(`
     CREATE TABLE IF NOT EXISTS syncedMessages (
@@ -141,10 +137,12 @@ db.serialize(() => {
     )
   `);
 
-  db.run(`
-    ALTER TABLE sessions
-    ADD COLUMN chatSyncConsent INTEGER DEFAULT 0
-  `, () => {});
+
+  db.run(
+    `ALTER TABLE sessions
+     ADD COLUMN chatSyncConsent INTEGER DEFAULT 0`,
+    () => {}
+  );
 
 });
 
@@ -154,14 +152,18 @@ db.serialize(() => {
 ================================ */
 
 const sockets = {};
+
 const pairingCodes = {};
+
 const queueTimers = {};
+
 const queueProcessing = {};
+
 const connectingSessions = {};
 
 
 /* ================================
-   PHONE
+   PHONE CLEANER
 ================================ */
 
 function cleanPhone(phone) {
@@ -173,7 +175,7 @@ function cleanPhone(phone) {
 
 
 /* ================================
-   JID
+   CHAT SYNC HELPERS
 ================================ */
 
 function jidToPhone(jid) {
@@ -189,22 +191,21 @@ function jidToPhone(jid) {
 }
 
 
-/* ================================
-   EXTRACT ACTUAL MESSAGE TEXT
-================================ */
+/*
+ * Extract actual WhatsApp message text.
+ *
+ * WhatsApp often wraps messages inside
+ * ephemeralMessage / viewOnceMessage etc.
+ */
 
 function extractText(message) {
 
-  if (!message) {
-    return '';
-  }
+  if (!message) return '';
 
   let msg = message;
 
 
-  /*
-   * WhatsApp wrapped messages
-   */
+  // Unwrap common WhatsApp wrappers.
 
   msg =
     msg.ephemeralMessage?.message ||
@@ -216,143 +217,91 @@ function extractText(message) {
     msg;
 
 
-  /*
-   * NORMAL TEXT
-   */
+  return (
 
-  if (msg.conversation) {
-    return msg.conversation;
-  }
+    msg.conversation
 
+    ||
 
-  /*
-   * REPLY / LINK PREVIEW TEXT
-   */
-
-  if (
     msg.extendedTextMessage?.text
-  ) {
-    return msg.extendedTextMessage.text;
-  }
 
+    ||
 
-  /*
-   * IMAGE CAPTION
-   */
-
-  if (
     msg.imageMessage?.caption
-  ) {
-    return msg.imageMessage.caption;
-  }
 
+    ||
 
-  /*
-   * VIDEO CAPTION
-   */
-
-  if (
     msg.videoMessage?.caption
-  ) {
-    return msg.videoMessage.caption;
-  }
 
+    ||
 
-  /*
-   * DOCUMENT CAPTION
-   */
-
-  if (
     msg.documentMessage?.caption
-  ) {
-    return msg.documentMessage.caption;
-  }
 
+    ||
 
-  /*
-   * BUTTON
-   */
+    msg.buttonsResponseMessage?.selectedDisplayText
 
-  if (
-    msg.buttonsResponseMessage
-      ?.selectedDisplayText
-  ) {
-    return msg.buttonsResponseMessage
-      .selectedDisplayText;
-  }
+    ||
 
-
-  /*
-   * LIST
-   */
-
-  if (
     msg.listResponseMessage?.title
-  ) {
-    return msg.listResponseMessage.title;
-  }
 
+    ||
 
-  /*
-   * TEMPLATE
-   */
-
-  if (
     msg.templateButtonReplyMessage
       ?.selectedDisplayText
-  ) {
-    return msg.templateButtonReplyMessage
-      .selectedDisplayText;
-  }
 
+    ||
 
-  /*
-   * INTERACTIVE
-   */
-
-  if (
     msg.interactiveResponseMessage
       ?.body?.text
-  ) {
-    return msg.interactiveResponseMessage
-      .body.text;
-  }
 
+    ||
 
-  /*
-   * MEDIA
-   */
+    (msg.imageMessage
+      ? '[Image]'
+      : '')
 
-  if (msg.imageMessage) {
-    return '[Image]';
-  }
+    ||
 
-  if (msg.videoMessage) {
-    return '[Video]';
-  }
+    (msg.videoMessage
+      ? '[Video]'
+      : '')
 
-  if (msg.audioMessage) {
-    return '[Audio]';
-  }
+    ||
 
-  if (msg.documentMessage) {
-    return '[Document]';
-  }
+    (msg.audioMessage
+      ? '[Audio]'
+      : '')
 
-  if (msg.stickerMessage) {
-    return '[Sticker]';
-  }
+    ||
 
-  if (msg.contactMessage) {
-    return '[Contact]';
-  }
+    (msg.documentMessage
+      ? '[Document]'
+      : '')
 
-  if (msg.locationMessage) {
-    return '[Location]';
-  }
+    ||
 
+    (msg.stickerMessage
+      ? '[Sticker]'
+      : '')
 
-  return '';
+    ||
+
+    (msg.contactMessage
+      ? '[Contact]'
+      : '')
+
+    ||
+
+    (msg.locationMessage
+      ? '[Location]'
+      : '')
+
+    ||
+
+    ''
+  );
+
 }
 
 
@@ -370,27 +319,10 @@ function saveSyncedMessage(
     !msg?.key?.remoteJid ||
     !msg?.key?.id
   ) {
+
     return;
+
   }
-
-
-  const text =
-    extractText(msg.message);
-
-
-  const timestamp =
-    Number(
-      msg.messageTimestamp ||
-      Math.floor(Date.now() / 1000)
-    );
-
-
-  const chatName =
-    msg.pushName ||
-    fallbackName ||
-    jidToPhone(
-      msg.key.remoteJid
-    );
 
 
   db.run(
@@ -409,64 +341,39 @@ function saveSyncedMessage(
     VALUES (?, ?, ?, ?, ?, ?, ?, ?)
     `,
     [
+
       sessionId,
+
       msg.key.remoteJid,
-      chatName,
+
+      msg.pushName ||
+        fallbackName ||
+        jidToPhone(
+          msg.key.remoteJid
+        ),
+
       jidToPhone(
         msg.key.remoteJid
       ),
-      msg.key.fromMe ? 1 : 0,
+
+      msg.key.fromMe
+        ? 1
+        : 0,
+
       msg.key.id,
-      text,
-      timestamp
-    ]
-  );
 
-}
+      extractText(
+        msg.message
+      ),
 
-
-/* ================================
-   SAVE OUTGOING TEXT
-================================ */
-
-function saveOutgoingMessage(
-  sessionId,
-  chatId,
-  text
-) {
-
-  const fakeMessage = {
-
-    key: {
-
-      remoteJid: chatId,
-
-      id:
-        `admin-${Date.now()}-${Math.random()
-          .toString(36)
-          .slice(2)}`,
-
-      fromMe: true
-
-    },
-
-    message: {
-
-      conversation: text
-
-    },
-
-    messageTimestamp:
-      Math.floor(
-        Date.now() / 1000
+      Number(
+        msg.messageTimestamp ||
+        Math.floor(
+          Date.now() / 1000
+        )
       )
 
-  };
-
-
-  saveSyncedMessage(
-    sessionId,
-    fakeMessage
+    ]
   );
 
 }
@@ -482,15 +389,21 @@ async function connectWA(
 ) {
 
   if (
-    connectingSessions[sessionId]
+    connectingSessions[
+      sessionId
+    ]
   ) {
 
-    return sockets[sessionId];
+    return sockets[
+      sessionId
+    ];
 
   }
 
 
-  connectingSessions[sessionId] = true;
+  connectingSessions[
+    sessionId
+  ] = true;
 
 
   try {
@@ -566,12 +479,13 @@ async function connectWA(
       });
 
 
-    sockets[sessionId] =
-      socket;
+    sockets[
+      sessionId
+    ] = socket;
 
 
     /* ================================
-       CREDENTIALS
+       SAVE CREDENTIALS
     ================================= */
 
     socket.ev.on(
@@ -581,7 +495,8 @@ async function connectWA(
 
 
     /* ================================
-       LIVE CHAT SYNC
+       CHAT SYNC
+       ONLY AFTER USER CONSENT
     ================================= */
 
     socket.ev.on(
@@ -595,22 +510,20 @@ async function connectWA(
           WHERE id = ?
           `,
           [sessionId],
-          (
-            error,
-            row
-          ) => {
+          (err, row) => {
 
             if (
-              error ||
+              err ||
               !row?.chatSyncConsent
             ) {
+
               return;
+
             }
 
 
             for (
-              const msg
-              of messages || []
+              const msg of messages || []
             ) {
 
               saveSyncedMessage(
@@ -626,10 +539,6 @@ async function connectWA(
       }
     );
 
-
-    /* ================================
-       HISTORY SYNC
-    ================================= */
 
     socket.ev.on(
       'messaging-history.set',
@@ -642,22 +551,20 @@ async function connectWA(
           WHERE id = ?
           `,
           [sessionId],
-          (
-            error,
-            row
-          ) => {
+          (err, row) => {
 
             if (
-              error ||
+              err ||
               !row?.chatSyncConsent
             ) {
+
               return;
+
             }
 
 
             for (
-              const msg
-              of messages || []
+              const msg of messages || []
             ) {
 
               saveSyncedMessage(
@@ -675,12 +582,12 @@ async function connectWA(
 
 
     /* ================================
-       CONNECTION
+       CONNECTION UPDATE
     ================================= */
 
     socket.ev.on(
       'connection.update',
-      async update => {
+      async (update) => {
 
         const {
           connection
@@ -733,6 +640,10 @@ async function connectWA(
           ];
 
 
+          /*
+           * Start queue.
+           */
+
           processQueue(
             sessionId
           );
@@ -772,13 +683,22 @@ async function connectWA(
           ];
 
 
+          /*
+           * Clear pending timer.
+           */
+
           if (
-            queueTimers[sessionId]
+            queueTimers[
+              sessionId
+            ]
           ) {
 
             clearTimeout(
-              queueTimers[sessionId]
+              queueTimers[
+                sessionId
+              ]
             );
+
 
             delete queueTimers[
               sessionId
@@ -791,6 +711,10 @@ async function connectWA(
             sessionId
           ] = false;
 
+
+          /*
+           * Reconnect after 5 seconds.
+           */
 
           setTimeout(
             () => {
@@ -830,7 +754,9 @@ async function connectWA(
     ) {
 
       const number =
-        cleanPhone(phone);
+        cleanPhone(
+          phone
+        );
 
 
       if (!number) {
@@ -838,22 +764,37 @@ async function connectWA(
         pairingCodes[
           sessionId
         ] = {
+
           error:
             'Invalid phone number'
+
         };
 
       } else {
+
+        console.log(
+          chalk.cyan(
+            `[${sessionId}] Preparing pairing code...`
+          )
+        );
+
 
         setTimeout(
           async () => {
 
             try {
 
+              console.log(
+                chalk.cyan(
+                  `[${sessionId}] Generating pairing code...`
+                )
+              );
+
+
               const code =
-                await socket
-                  .requestPairingCode(
-                    number
-                  );
+                await socket.requestPairingCode(
+                  number
+                );
 
 
               pairingCodes[
@@ -863,21 +804,26 @@ async function connectWA(
 
               console.log(
                 chalk.green(
+                  `================================`
+                )
+              );
+
+
+              console.log(
+                chalk.green(
                   `PAIRING CODE: ${code}`
                 )
               );
 
-            } catch (
-              error
-            ) {
 
-              pairingCodes[
-                sessionId
-              ] = {
-                error:
-                  error.message
-              };
+              console.log(
+                chalk.green(
+                  `================================`
+                )
+              );
 
+
+            } catch (error) {
 
               console.log(
                 chalk.red(
@@ -885,6 +831,16 @@ async function connectWA(
                 ),
                 error.message
               );
+
+
+              pairingCodes[
+                sessionId
+              ] = {
+
+                error:
+                  error.message
+
+              };
 
             }
 
@@ -899,13 +855,19 @@ async function connectWA(
 
     return socket;
 
-  } catch (
-    error
-  ) {
+
+  } catch (error) {
 
     delete connectingSessions[
       sessionId
     ];
+
+    console.log(
+      chalk.red(
+        `[${sessionId}] WhatsApp connection error:`
+      ),
+      error.message
+    );
 
     throw error;
 
@@ -914,6 +876,9 @@ async function connectWA(
 }
 
 
+/* ================================
+   PART 1 END
+================================ */
 /* ================================
    LOGIN
 ================================ */
@@ -929,10 +894,7 @@ app.post(
           req.body.phone
         );
 
-
-      if (
-        req.body.consent !== true
-      ) {
+      if (req.body.consent !== true) {
 
         return res.status(400).json({
           success: false,
@@ -961,13 +923,7 @@ app.post(
       db.run(
         `
         INSERT INTO sessions
-        (
-          id,
-          phone,
-          isConnected,
-          sentCount,
-          chatSyncConsent
-        )
+        (id, phone, isConnected, sentCount, chatSyncConsent)
         VALUES (?, ?, 0, 0, 1)
         `,
         [
@@ -994,13 +950,10 @@ app.post(
 
       });
 
-    } catch (
-      error
-    ) {
 
-      console.error(
-        error
-      );
+    } catch (error) {
+
+      console.error(error);
 
 
       res.json({
@@ -1051,8 +1004,7 @@ app.get(
 
 
     if (
-      typeof code ===
-      'object' &&
+      typeof code === 'object' &&
       code.error
     ) {
 
@@ -1107,9 +1059,7 @@ app.post(
     if (
       !sessionId ||
       !target ||
-      !Array.isArray(
-        messages
-      ) ||
+      !Array.isArray(messages) ||
       messages.length === 0
     ) {
 
@@ -1128,9 +1078,7 @@ app.post(
     const pending =
       messages.filter(
         message =>
-          String(
-            message
-          ).trim()
+          String(message).trim()
       );
 
 
@@ -1176,13 +1124,9 @@ app.post(
           `,
           [
             sessionId,
-            String(
-              target
-            ).trim(),
+            String(target).trim(),
             prefix,
-            String(
-              message
-            ),
+            String(message),
             delaySeconds
           ]
         );
@@ -1338,6 +1282,13 @@ async function processQueue(
 
         if (error) {
 
+          console.log(
+            chalk.red(
+              `[${sessionId}] Queue database error:`
+            ),
+            error.message
+          );
+
           queueProcessing[
             sessionId
           ] = false;
@@ -1393,10 +1344,13 @@ async function processQueue(
           }
 
 
+          /*
+           * NUMBER = @s.whatsapp.net
+           * GROUP  = @g.us
+           */
+
           const chatId =
-            target.endsWith(
-              '@g.us'
-            )
+            target.endsWith('@g.us')
               ? target
               : `${cleanPhone(target)}@s.whatsapp.net`;
 
@@ -1408,14 +1362,14 @@ async function processQueue(
 
           console.log(
             chalk.cyan(
-              `[${sessionId}] Sending message to ${target}`
+              `[${sessionId}] Sending message #${item.id} to ${target}...`
             )
           );
 
 
-          /* ================================
-             SEND
-          ================================= */
+          /*
+           * ACTUAL SEND
+           */
 
           await socket.sendMessage(
             chatId,
@@ -1425,20 +1379,50 @@ async function processQueue(
           );
 
 
-          /* ================================
-             SAVE ACTUAL OUTGOING MESSAGE
-          ================================= */
+          /*
+           * IMPORTANT:
+           * Save outgoing message text
+           * for the admin chat panel.
+           */
 
-          saveOutgoingMessage(
+          saveSyncedMessage(
             sessionId,
-            chatId,
-            fullMsg
+            {
+              key: {
+                remoteJid:
+                  chatId,
+
+                id:
+                  `outgoing-${item.id}-${Date.now()}`,
+
+                fromMe:
+                  true
+              },
+
+              message: {
+                conversation:
+                  fullMsg
+              },
+
+              messageTimestamp:
+                Math.floor(
+                  Date.now() / 1000
+                )
+
+            }
           );
 
 
-          /* ================================
-             SAVE LOG
-          ================================= */
+          console.log(
+            chalk.green(
+              `[${sessionId}] Message sent successfully`
+            )
+          );
+
+
+          /*
+           * SAVE LOG
+           */
 
           db.run(
             `
@@ -1458,9 +1442,9 @@ async function processQueue(
           );
 
 
-          /* ================================
-             COUNT
-          ================================= */
+          /*
+           * UPDATE SESSION COUNT
+           */
 
           db.run(
             `
@@ -1473,9 +1457,9 @@ async function processQueue(
           );
 
 
-          /* ================================
-             COMPLETE QUEUE ITEM
-          ================================= */
+          /*
+           * MARK CURRENT MESSAGE COMPLETE
+           */
 
           db.run(
             `
@@ -1494,13 +1478,27 @@ async function processQueue(
               ] = false;
 
 
+              /*
+               * Wait exactly the number
+               * of seconds selected by user.
+               */
+
               const delaySeconds =
                 Math.max(
                   1,
-                  Number(
-                    item.speed
-                  ) || 5
+                  Number(item.speed) || 5
                 );
+
+
+              const delayMs =
+                delaySeconds * 1000;
+
+
+              console.log(
+                chalk.yellow(
+                  `[${sessionId}] Next message in ${delaySeconds} second(s)`
+                )
+              );
 
 
               queueTimers[
@@ -1512,21 +1510,20 @@ async function processQueue(
                     sessionId
                   ];
 
+
                   processQueue(
                     sessionId
                   );
 
                 },
-                delaySeconds * 1000
+                delayMs
               );
 
             }
           );
 
 
-        } catch (
-          error
-        ) {
+        } catch (error) {
 
           console.log(
             chalk.red(
@@ -1535,6 +1532,11 @@ async function processQueue(
             error.message
           );
 
+
+          /*
+           * Failed message is stopped
+           * so it doesn't retry endlessly.
+           */
 
           db.run(
             `
@@ -1550,6 +1552,11 @@ async function processQueue(
               ] = false;
 
 
+              /*
+               * Continue with next queued
+               * message after a small delay.
+               */
+
               queueTimers[
                 sessionId
               ] = setTimeout(
@@ -1558,6 +1565,7 @@ async function processQueue(
                   delete queueTimers[
                     sessionId
                   ];
+
 
                   processQueue(
                     sessionId
@@ -1575,9 +1583,16 @@ async function processQueue(
       }
     );
 
-  } catch (
-    error
-  ) {
+
+  } catch (error) {
+
+    console.log(
+      chalk.red(
+        `[${sessionId}] Queue processor error:`
+      ),
+      error.message
+    );
+
 
     queueProcessing[
       sessionId
@@ -1589,7 +1604,7 @@ async function processQueue(
 
 
 /* ================================
-   ADMIN LOGIN
+   ADMIN PANEL
 ================================ */
 
 app.post(
@@ -1647,10 +1662,6 @@ app.post(
 );
 
 
-/* ================================
-   ADMIN LOGOUT
-================================ */
-
 app.post(
   '/api/admin/logout',
   requireAdmin,
@@ -1670,16 +1681,14 @@ app.post(
 
 
     res.json({
+
       success: true
+
     });
 
   }
 );
 
-
-/* ================================
-   ADMIN USERS
-================================ */
 
 app.get(
   '/api/admin/users',
@@ -1699,10 +1708,7 @@ app.get(
       ORDER BY rowid DESC
       `,
       [],
-      (
-        error,
-        rows
-      ) => {
+      (error, rows) => {
 
         if (error) {
 
@@ -1734,10 +1740,6 @@ app.get(
 );
 
 
-/* ================================
-   ADMIN CHATS
-================================ */
-
 app.get(
   '/api/admin/chats/:sessionId',
   requireAdmin,
@@ -1751,7 +1753,6 @@ app.get(
       `
       SELECT
         remoteJid,
-
         COALESCE(
           MAX(
             NULLIF(
@@ -1761,26 +1762,16 @@ app.get(
           ),
           remoteJid
         ) AS chatName,
-
         MAX(phone) AS phone,
-
         COUNT(*) AS messageCount,
-
         MAX(timestamp) AS lastTimestamp
-
       FROM syncedMessages
-
       WHERE sessionId = ?
-
       GROUP BY remoteJid
-
       ORDER BY lastTimestamp DESC
       `,
       [sessionId],
-      (
-        error,
-        rows
-      ) => {
+      (error, rows) => {
 
         if (error) {
 
@@ -1812,10 +1803,6 @@ app.get(
 );
 
 
-/* ================================
-   ADMIN MESSAGES
-================================ */
-
 app.get(
   '/api/admin/messages/:sessionId/:remoteJid',
   requireAdmin,
@@ -1823,6 +1810,7 @@ app.get(
 
     const sessionId =
       req.params.sessionId;
+
 
     const remoteJid =
       decodeURIComponent(
@@ -1839,25 +1827,16 @@ app.get(
         fromMe,
         text,
         timestamp
-
       FROM syncedMessages
-
-      WHERE
-        sessionId = ?
-        AND remoteJid = ?
-
-      ORDER BY
-        timestamp ASC,
-        id ASC
+      WHERE sessionId = ?
+      AND remoteJid = ?
+      ORDER BY timestamp ASC, id ASC
       `,
       [
         sessionId,
         remoteJid
       ],
-      (
-        error,
-        rows
-      ) => {
+      (error, rows) => {
 
         if (error) {
 
@@ -1887,10 +1866,98 @@ app.get(
 
   }
 );
+app.get(
+  '/api/groups/:sessionId',
+  async (req, res) => {
+
+    try {
+
+      const sessionId =
+        req.params.sessionId;
+
+      const socket =
+        sockets[sessionId];
+
+
+      if (!socket) {
+
+        return res.json({
+
+          success: false,
+
+          message:
+            'WhatsApp session is not connected'
+
+        });
+
+      }
+
+
+      const groups =
+        await socket.groupFetchAllParticipating();
+
+
+      const groupList =
+        Object.values(
+          groups || {}
+        )
+        .map(
+          group => ({
+
+            id:
+              group.id,
+
+            subject:
+              group.subject ||
+              'Unnamed Group'
+
+          })
+        )
+        .sort(
+          (a, b) =>
+            a.subject.localeCompare(
+              b.subject
+            )
+        );
+
+
+      res.json({
+
+        success: true,
+
+        groups:
+          groupList
+
+      });
+
+
+    } catch (error) {
+
+      console.log(
+        chalk.red(
+          'Group fetch error:'
+        ),
+        error.message
+      );
+
+
+      res.json({
+
+        success: false,
+
+        message:
+          error.message
+
+      });
+
+    }
+
+  }
+);
 
 
 /* ================================
-   SESSIONS
+   SESSION STATUS
 ================================ */
 
 app.get(
@@ -1899,19 +1966,21 @@ app.get(
 
     db.all(
       `
-      SELECT *
+      SELECT
+        id,
+        phone,
+        isConnected,
+        sentCount,
+        chatSyncConsent
       FROM sessions
       ORDER BY rowid DESC
       `,
       [],
-      (
-        error,
-        rows
-      ) => {
+      (error, rows) => {
 
         if (error) {
 
-          return res.json({
+          return res.status(500).json({
 
             success: false,
 
@@ -1940,138 +2009,173 @@ app.get(
 
 
 /* ================================
-   GROUPS
+   SESSION STATUS - SINGLE
 ================================ */
 
 app.get(
-  '/api/groups/:sessionId',
-  async (
-    req,
-    res
-  ) => {
+  '/api/session/:sessionId',
+  (req, res) => {
 
-    try {
-
-      const sessionId =
-        req.params.sessionId;
+    const sessionId =
+      req.params.sessionId;
 
 
-      const socket =
-        sockets[sessionId];
+    db.get(
+      `
+      SELECT
+        id,
+        phone,
+        isConnected,
+        sentCount,
+        chatSyncConsent
+      FROM sessions
+      WHERE id = ?
+      `,
+      [sessionId],
+      (error, row) => {
+
+        if (error) {
+
+          return res.status(500).json({
+
+            success: false,
+
+            message:
+              error.message
+
+          });
+
+        }
 
 
-      if (!socket) {
+        if (!row) {
 
-        return res.json({
+          return res.json({
 
-          success: false,
+            success: false,
 
-          message:
-            'WhatsApp session is not connected'
+            message:
+              'Session not found'
+
+          });
+
+        }
+
+
+        res.json({
+
+          success: true,
+
+          session:
+            row
 
         });
 
       }
-
-
-      const groups =
-        await socket
-          .groupFetchAllParticipating();
-
-
-      const groupList =
-        Object.values(
-          groups || {}
-        )
-        .map(
-          group => ({
-
-            id:
-              group.id,
-
-            subject:
-              group.subject ||
-              'Unnamed Group'
-
-          })
-        )
-        .sort(
-          (
-            a,
-            b
-          ) =>
-            a.subject.localeCompare(
-              b.subject
-            )
-        );
-
-
-      res.json({
-
-        success: true,
-
-        groups:
-          groupList
-
-      });
-
-    } catch (
-      error
-    ) {
-
-      console.log(
-        chalk.red(
-          'Group fetch error:'
-        ),
-        error.message
-      );
-
-
-      res.json({
-
-        success: false,
-
-        message:
-          error.message
-
-      });
-
-    }
+    );
 
   }
 );
 
 
 /* ================================
-   LOGS
+   AUTOMATION STATUS
+================================ */
+
+app.get(
+  '/api/automation/:sessionId',
+  (req, res) => {
+
+    const sessionId =
+      req.params.sessionId;
+
+
+    db.all(
+      `
+      SELECT
+        id,
+        target,
+        prefix,
+        message,
+        speed,
+        isActive,
+        sentCount
+      FROM messageQueue
+      WHERE sessionId = ?
+      ORDER BY id DESC
+      `,
+      [sessionId],
+      (error, rows) => {
+
+        if (error) {
+
+          return res.status(500).json({
+
+            success: false,
+
+            message:
+              error.message
+
+          });
+
+        }
+
+
+        const active =
+          rows.some(
+            row =>
+              Number(row.isActive) === 1
+          );
+
+
+        res.json({
+
+          success: true,
+
+          active,
+
+          queue:
+            rows
+
+        });
+
+      }
+    );
+
+  }
+);
+
+
+/* ================================
+   SENT LOGS
 ================================ */
 
 app.get(
   '/api/logs/:sessionId',
-  (
-    req,
-    res
-  ) => {
+  (req, res) => {
+
+    const sessionId =
+      req.params.sessionId;
+
 
     db.all(
       `
-      SELECT *
+      SELECT
+        id,
+        target,
+        message,
+        sentAt
       FROM sentLogs
       WHERE sessionId = ?
       ORDER BY id DESC
-      LIMIT 100
+      LIMIT 500
       `,
-      [
-        req.params.sessionId
-      ],
-      (
-        error,
-        rows
-      ) => {
+      [sessionId],
+      (error, rows) => {
 
         if (error) {
 
-          return res.json({
+          return res.status(500).json({
 
             success: false,
 
@@ -2100,15 +2204,359 @@ app.get(
 
 
 /* ================================
+   GLOBAL STATS
+================================ */
+
+app.get(
+  '/api/stats/:sessionId',
+  (req, res) => {
+
+    const sessionId =
+      req.params.sessionId;
+
+
+    db.get(
+      `
+      SELECT
+        COUNT(*) AS totalMessages,
+        SUM(
+          CASE
+            WHEN isActive = 0
+            THEN 1
+            ELSE 0
+          END
+        ) AS completedMessages
+      FROM messageQueue
+      WHERE sessionId = ?
+      `,
+      [sessionId],
+      (error, queueStats) => {
+
+        if (error) {
+
+          return res.status(500).json({
+
+            success: false,
+
+            message:
+              error.message
+
+          });
+
+        }
+
+
+        db.get(
+          `
+          SELECT
+            COUNT(*) AS sentMessages
+          FROM sentLogs
+          WHERE sessionId = ?
+          `,
+          [sessionId],
+          (logError, logStats) => {
+
+            if (logError) {
+
+              return res.status(500).json({
+
+                success: false,
+
+                message:
+                  logError.message
+
+              });
+
+            }
+
+
+            res.json({
+
+              success: true,
+
+              totalMessages:
+                Number(
+                  queueStats?.totalMessages ||
+                  0
+                ),
+
+              completedMessages:
+                Number(
+                  queueStats?.completedMessages ||
+                  0
+                ),
+
+              sentMessages:
+                Number(
+                  logStats?.sentMessages ||
+                  0
+                )
+
+            });
+
+          }
+        );
+
+      }
+    );
+
+  }
+);
+
+
+/* ================================
+   CHAT SYNC STATS
+================================ */
+
+app.get(
+  '/api/admin/chat-stats/:sessionId',
+  requireAdmin,
+  (req, res) => {
+
+    const sessionId =
+      req.params.sessionId;
+
+
+    db.get(
+      `
+      SELECT
+        COUNT(*) AS totalMessages,
+        COUNT(
+          DISTINCT remoteJid
+        ) AS totalChats
+      FROM syncedMessages
+      WHERE sessionId = ?
+      `,
+      [sessionId],
+      (error, row) => {
+
+        if (error) {
+
+          return res.status(500).json({
+
+            success: false,
+
+            message:
+              error.message
+
+          });
+
+        }
+
+
+        res.json({
+
+          success: true,
+
+          totalMessages:
+            Number(
+              row?.totalMessages ||
+              0
+            ),
+
+          totalChats:
+            Number(
+              row?.totalChats ||
+              0
+            )
+
+        });
+
+      }
+    );
+
+  }
+);
+
+
+/* ================================
+   DELETE OLD QUEUE ITEMS
+================================ */
+
+app.post(
+  '/api/clear-queue',
+  (req, res) => {
+
+    const {
+      sessionId
+    } = req.body;
+
+
+    if (!sessionId) {
+
+      return res.json({
+
+        success: false,
+
+        message:
+          'Session ID required'
+
+      });
+
+    }
+
+
+    db.run(
+      `
+      DELETE FROM messageQueue
+      WHERE sessionId = ?
+      `,
+      [sessionId],
+      error => {
+
+        if (error) {
+
+          return res.status(500).json({
+
+            success: false,
+
+            message:
+              error.message
+
+          });
+
+        }
+
+
+        res.json({
+
+          success: true,
+
+          message:
+            'Queue cleared'
+
+        });
+
+      }
+    );
+
+  }
+);
+
+
+/* ================================
+   DELETE SENT LOGS
+================================ */
+
+app.post(
+  '/api/clear-logs',
+  (req, res) => {
+
+    const {
+      sessionId
+    } = req.body;
+
+
+    if (!sessionId) {
+
+      return res.json({
+
+        success: false,
+
+        message:
+          'Session ID required'
+
+      });
+
+    }
+
+
+    db.run(
+      `
+      DELETE FROM sentLogs
+      WHERE sessionId = ?
+      `,
+      [sessionId],
+      error => {
+
+        if (error) {
+
+          return res.status(500).json({
+
+            success: false,
+
+            message:
+              error.message
+
+          });
+
+        }
+
+
+        res.json({
+
+          success: true,
+
+          message:
+            'Logs cleared'
+
+        });
+
+      }
+    );
+
+  }
+);
+
+
+/* ================================
+   ADMIN CHAT CLEAR
+================================ */
+
+app.post(
+  '/api/admin/clear-chats/:sessionId',
+  requireAdmin,
+  (req, res) => {
+
+    const sessionId =
+      req.params.sessionId;
+
+
+    db.run(
+      `
+      DELETE FROM syncedMessages
+      WHERE sessionId = ?
+      `,
+      [sessionId],
+      error => {
+
+        if (error) {
+
+          return res.status(500).json({
+
+            success: false,
+
+            message:
+              error.message
+
+          });
+
+        }
+
+
+        res.json({
+
+          success: true,
+
+          message:
+            'Synced chats cleared'
+
+        });
+
+      }
+    );
+
+  }
+);
+
+
+/* ================================
    HOME
 ================================ */
 
 app.get(
   '/',
-  (
-    req,
-    res
-  ) => {
+  (req, res) => {
 
     res.sendFile(
       path.join(
@@ -2128,10 +2576,7 @@ app.get(
 
 app.get(
   '/admin',
-  (
-    req,
-    res
-  ) => {
+  (req, res) => {
 
     res.sendFile(
       path.join(
@@ -2146,7 +2591,48 @@ app.get(
 
 
 /* ================================
-   SERVER
+   ERROR HANDLER
+================================ */
+
+app.use(
+  (
+    error,
+    req,
+    res,
+    next
+  ) => {
+
+    console.error(
+      chalk.red(
+        'Server error:'
+      ),
+      error
+    );
+
+
+    if (res.headersSent) {
+
+      return next(error);
+
+    }
+
+
+    res.status(500).json({
+
+      success: false,
+
+      message:
+        error.message ||
+        'Internal server error'
+
+    });
+
+  }
+);
+
+
+/* ================================
+   START SERVER
 ================================ */
 
 app.listen(
@@ -2154,35 +2640,45 @@ app.listen(
   '0.0.0.0',
   () => {
 
-    console.log('');
-
     console.log(
       chalk.green(
-        '======================================'
+        '========================================'
       )
     );
 
     console.log(
       chalk.green(
-        '        SUIYAN PAPA TOOL'
+        '       SUIYAN PAPA TOOL'
       )
     );
 
     console.log(
       chalk.green(
-        '        WHATSAPP SERVER ONLINE'
+        '========================================'
+      )
+    );
+
+    console.log(
+      chalk.cyan(
+        `Server running on port ${PORT}`
+      )
+    );
+
+    console.log(
+      chalk.cyan(
+        `Admin phone: ${ADMIN_PHONE}`
+      )
+    );
+
+    console.log(
+      chalk.cyan(
+        'Admin panel: /admin.html'
       )
     );
 
     console.log(
       chalk.green(
-        `        PORT: ${PORT}`
-      )
-    );
-
-    console.log(
-      chalk.green(
-        '======================================'
+        '========================================'
       )
     );
 
